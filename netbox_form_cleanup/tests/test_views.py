@@ -50,7 +50,7 @@ class RulePageTests(NetBoxData, TestCase):
                     'Everywhere,,description,,false\n',
             'format': 'csv', 'csv_delimiter': ',',
         })
-        import re; self.assertEqual(response.status_code, 302, re.findall(r'(?s)(?:alert|text-danger|errorlist)[^>]*>(.{0,300})', response.content.decode())[:5])
+        self.assertEqual(response.status_code, 302)
         imported = FieldRule.objects.get(name='Imported')
         self.assertEqual(imported.fields, ['serial', 'asset_tag'])
         self.assertTrue(imported.in_tables)

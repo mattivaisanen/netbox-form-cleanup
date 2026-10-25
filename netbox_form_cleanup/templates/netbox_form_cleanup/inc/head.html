@@ -25,7 +25,7 @@
       heading.innerHTML = '<i class="mdi mdi-chevron-down" aria-hidden="true"></i> ';
       heading.appendChild(document.createTextNode(TITLE));
       var badge = document.createElement('span');
-      badge.className = 'badge text-bg-secondary ms-2 form-cleanup-count';
+      badge.className = 'text-secondary fw-normal ms-1 form-cleanup-count';
       heading.appendChild(badge);
       var toggle = function () {
         section.classList.toggle('form-cleanup-collapsed');
@@ -65,7 +65,7 @@
           section.classList.remove('form-cleanup-collapsed');
         }
         var count = section.querySelectorAll('[data-form-cleanup-hidden]').length;
-        section.querySelector('.form-cleanup-count').textContent = count;
+        section.querySelector('.form-cleanup-count').textContent = '(' + count + ')';
       });
     }
 
