@@ -6,6 +6,8 @@ when a form, object page or list is drawn. Superusers are exempt unless they
 switch on "Apply field rules to me"; rules with user groups apply only to
 members.
 """
+import re
+
 from netbox.context import current_request
 
 from .fields import comparable, is_empty, value_labels, wanted_label
@@ -128,20 +130,45 @@ def hidden_fields(rules, names, value_of=None, always_only=False, model=None):
 
 
 def _conditional(rule, targets, value_of, model):
+    """
+    The targets a conditional rule hides. With a condition field, that one
+    field decides for all of them; without, each field is judged by its own
+    value ("same as" always needs one).
+    """
     condition = rule.condition
-    if condition == ConditionChoices.EMPTY:
-        if rule.condition_field:
-            return targets if _empty(value_of, rule.condition_field) else []
-        return [name for name in targets if _empty(value_of, name)]
-    if condition in (ConditionChoices.IS, ConditionChoices.IS_NOT):
-        wanted = {value.lower() for value in rule.condition_values} | {wanted_label(v) for v in rule.condition_values}
-        found = bool(value_labels(model, rule.condition_field, value_of(rule.condition_field)) & wanted)
-        return targets if found == (condition == ConditionChoices.IS) else []
     if condition == ConditionChoices.SAME:
         # Shown only while it adds something: set and different from the other field.
         other = comparable(value_of(rule.condition_field))
         return [name for name in targets if (value := comparable(value_of(name))) is None or value == other]
-    return []
+    test = _tests.get(condition)
+    if test is None:
+        return []
+    if rule.condition_field:
+        return targets if test(rule, value_of, model, rule.condition_field) else []
+    return [name for name in targets if test(rule, value_of, model, name)]
+
+
+def _test_empty(rule, value_of, model, name):
+    return _empty(value_of, name)
+
+
+def _test_one_of(rule, value_of, model, name):
+    wanted = {value.lower() for value in rule.condition_values} | {wanted_label(v) for v in rule.condition_values}
+    found = bool(value_labels(model, name, value_of(name)) & wanted)
+    return found == (rule.condition == ConditionChoices.IS)
+
+
+def _test_pattern(rule, value_of, model, name):
+    pattern = re.compile(rule.condition_pattern, re.IGNORECASE)
+    return any(pattern.search(label) for label in value_labels(model, name, value_of(name)))
+
+
+_tests = {
+    ConditionChoices.EMPTY: _test_empty,
+    ConditionChoices.IS: _test_one_of,
+    ConditionChoices.IS_NOT: _test_one_of,
+    ConditionChoices.REGEX: _test_pattern,
+}
 
 
 def _empty(value_of, name):

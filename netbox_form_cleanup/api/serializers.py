@@ -23,7 +23,7 @@ class FieldRuleSerializer(NetBoxModelSerializer):
         model = FieldRule
         fields = (
             'id', 'url', 'display_url', 'display', 'name', 'description', 'enabled', 'object_type', 'fields',
-            'condition', 'condition_field', 'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups',
-            'comments', 'tags', 'custom_fields', 'created', 'last_updated',
+            'condition', 'condition_field', 'condition_values', 'condition_pattern', 'in_forms', 'in_detail',
+            'in_tables', 'groups', 'comments', 'tags', 'custom_fields', 'created', 'last_updated',
         )
         brief_fields = ('id', 'url', 'display', 'name', 'description')

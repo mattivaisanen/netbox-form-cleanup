@@ -18,15 +18,16 @@ as they are.
   device's *Total weight*, *GPS coordinates*, *Region*...); hiding the only
   row of a panel removes the panel.
 - **Always, or on a condition.** An *Always* rule hides its fields for
-  good. Conditional rules look at the object's current values:
-  - *When empty*: each field hides while it has no value, or, with a
-    *condition field*, all the fields hide while that one is empty.
-    Example: hide an interface's wireless channel, frequency, width and
-    power while its *Wireless role* is empty, so they only show on radios.
-  - *While another field has one of these values* / *Unless another
-    field has one of these values*: related objects match by name, slug
-    or ID. Example: hide a site's facility and time zone unless its status
-    is `active`.
+  good. Conditional rules look at each field's own value, or at another
+  field you pick, which then decides for all of them:
+  - *While empty*. Example: hide an interface's wireless channel,
+    frequency, width and power while its *Wireless role* is empty, so they
+    only show on radios.
+  - *While value is one of* / *Unless value is one of* some values.
+    Related objects match by name, slug or ID, numbers by value. Example:
+    hide a device's total weight while it is `0`.
+  - *While value matches a pattern* (a regular expression). Example: hide
+    serial numbers that start with `TEMP-`.
   - *While empty or same as another field*: each field shows only when it
     has a value that differs from the other field. Example: a circuit
     termination's upstream speed only when it differs from the port speed.

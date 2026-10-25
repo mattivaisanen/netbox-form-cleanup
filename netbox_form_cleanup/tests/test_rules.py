@@ -206,10 +206,30 @@ class ValueConditionTests(NetBoxData, TestCase):
         values = {'facility': '', 'status': 'planned'}
         self.assertEqual(self.hidden(rule, None, ['facility'], model=Site, value_of=values.get), set())
 
+    def test_own_value_without_other_field(self):
+        """Without another field, each field is judged by its own value."""
+        rule = self.rule(['serial', 'asset_tag'], model=Device, condition=ConditionChoices.IS_NOT,
+                         condition_values=['SER-1'])
+        self.assertEqual(self.hidden(rule, self.plain, ['serial', 'asset_tag']), {'asset_tag'})
+
+    def test_pattern(self):
+        rule = self.rule(['serial'], model=Device, condition=ConditionChoices.REGEX, condition_pattern='^ser-')
+        self.assertEqual(self.hidden(rule, self.plain, ['serial']), {'serial'})
+        rule.condition_pattern = '^xyz'
+        self.assertEqual(self.hidden(rule, self.plain, ['serial']), set())
+        # Related objects match by name; with another field it decides for all fields.
+        rule = self.rule(['cluster', 'serial'], model=Device, condition=ConditionChoices.REGEX,
+                         condition_field='device_type', condition_pattern='model \\d')
+        self.assertEqual(self.hidden(rule, self.plain, ['cluster', 'serial']), {'cluster', 'serial'})
+        # Zero, however written.
+        rule = self.rule(['total_weight'], model=Device, condition=ConditionChoices.REGEX,
+                         condition_pattern='^0$')
+        self.assertEqual(self.hidden(rule, Device.objects.get(pk=self.plain.pk), ['total_weight']),
+                         {'total_weight'})
+
     def test_numbers_match_however_written(self):
         """A device's total weight is 0.0 without weights: "0" in the rule matches it."""
-        rule = self.rule(['total_weight'], model=Device, condition=ConditionChoices.IS,
-                         condition_field='total_weight', condition_values=['0'])
+        rule = self.rule(['total_weight'], model=Device, condition=ConditionChoices.IS, condition_values=['0'])
         self.assertEqual(self.hidden(rule, Device.objects.get(pk=self.plain.pk), ['total_weight']), {'total_weight'})
         rule.condition_values = ['0.00']
         self.assertEqual(self.hidden(rule, None, ['total_weight'], value_of={'total_weight': 0}.get), {'total_weight'})
@@ -235,8 +255,17 @@ class ValueConditionTests(NetBoxData, TestCase):
             self.rule(['cluster'], model=Device, condition=ConditionChoices.IS, condition_field='device_type')
         self.assertIn('condition_values', cm.exception.message_dict)
         with self.assertRaises(ValidationError) as cm:
-            self.rule(['cluster'], model=Device, condition=ConditionChoices.IS_NOT, condition_values=['x'])
+            self.rule(['oob_ip'], model=Device, condition=ConditionChoices.SAME)
         self.assertIn('condition_field', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['serial'], model=Device, condition=ConditionChoices.REGEX)
+        self.assertIn('condition_pattern', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['serial'], model=Device, condition=ConditionChoices.REGEX, condition_pattern='(')
+        self.assertIn('condition_pattern', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['serial'], model=Device, condition_pattern='x')
+        self.assertIn('condition_pattern', cm.exception.message_dict)
         with self.assertRaises(ValidationError) as cm:
             self.rule(['serial'], model=Device, condition_values=['x'])
         self.assertIn('condition_values', cm.exception.message_dict)
@@ -246,3 +275,25 @@ class ValueConditionTests(NetBoxData, TestCase):
         with self.assertRaises(ValidationError) as cm:
             self.rule(['serial'], model=Device, condition_field='asset_tag')
         self.assertIn('condition_field', cm.exception.message_dict)
+
+
+class MigrationTests(NetBoxData, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.make_netbox()
+
+    def test_rule_naming_its_own_field_twice_is_simplified(self):
+        from importlib import import_module
+
+        from django.apps import apps as django_apps
+
+        migration = import_module('netbox_form_cleanup.migrations.0003_condition_pattern')
+        twice = self.rule(['total_weight'], model=Device, condition=ConditionChoices.IS,
+                          condition_field='total_weight', condition_values=['0'])
+        other = self.rule(['cluster'], model=Device, condition=ConditionChoices.IS,
+                          condition_field='device_type', condition_values=['x'])
+        migration.drop_self_condition_field(django_apps, None)
+        twice.refresh_from_db()
+        other.refresh_from_db()
+        self.assertEqual(twice.condition_field, '')
+        self.assertEqual(other.condition_field, 'device_type')

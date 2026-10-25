@@ -41,9 +41,10 @@ Admins can set defaults for everyone with NetBox's own
 | --- | --- |
 | Object type | One object type, or blank for every type that has the fields. |
 | Fields | The fields to hide, by name as on the object's form (`serial`, `tenant`). Custom fields are `cf_<name>`. Rows that only exist on the object page (a device's `total_weight`, `gps_coordinates`) are offered too, marked *object page only*; they have no form field or column. The form offers the object type's fields, or every field name of every type when blank. |
-| Condition | *Always*; *While empty*; *While another field has one of these values*; *Unless another field has one of these values*; *While empty or same as another field*. The form shows only the inputs the chosen condition needs. |
-| Condition field (form: *Only while this field is empty* / *Other field*) | The field a condition looks at. *While empty*: optional; hide all the fields while this one is empty (blank: each field while it is empty itself). *Has / unless has one of these values*: compared with the values (required). *Same as*: each field shows only when it has a value that differs from this one (required). |
-| Condition values (form: *Values*) | *Has / unless has one of these values* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; numbers by value (`0` matches 0.0); anything else by its text. The other field may be one of the hidden fields, e.g. hide `total_weight` while it is `0`. Not case sensitive. A field without a value matches nothing, so *unless* hides the fields while the other field is empty. |
+| Condition | *Always*; *While empty*; *While value is one of*; *Unless value is one of*; *While value matches a pattern*; *While empty or same as another field*. The form shows only the inputs the chosen condition needs. |
+| Condition field (form: *Look at another field* / *Other field*) | Optional except for *same as*. Blank: each hidden field is judged by its own value. Set: that field's value decides for all the hidden fields. *Same as*: each field shows only when it has a value that differs from this one. |
+| Condition values (form: *Values*) | *Value is one of* / *unless value is one of* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; numbers by value (`0` matches 0.0); anything else by its text. Not case sensitive. A field without a value matches nothing, so *unless* hides empty fields too. |
+| Condition pattern (form: *Pattern*) | *Matches a pattern* only. A Python regular expression, searched anywhere in the value, not case sensitive; related objects match by name, slug or ID, numbers as written without trailing zeros (`^0$` matches 0.0). An empty value matches nothing. |
 | Forms | Move the fields into *More fields* on add and edit forms; bulk edit and filter forms with *Always* rules. On by default. |
 | Object pages | Leave the fields out of object pages. On by default. |
 | Object lists | Remove the fields' columns from object lists. *Always* rules only. Off by default. |
@@ -52,8 +53,8 @@ Admins can set defaults for everyone with NetBox's own
 CSV import columns: `name`, `description`, `enabled`, `object_type`
 (`app_label.model`, blank for every type), `fields` (comma separated, in
 double quotes when more than one), `condition` (`always`, `empty`, `is`,
-`is_not` or `same`), `condition_field`, `condition_values` (comma separated,
-like `fields`), `in_forms`, `in_detail`, `in_tables`, `groups` (group
+`is_not`, `regex` or `same`), `condition_field`, `condition_values` (comma
+separated, like `fields`), `condition_pattern`, `in_forms`, `in_detail`, `in_tables`, `groups` (group
 names), `tags`, `comments`. Columns left out take the defaults above.
 
 REST API: `/api/plugins/form-cleanup/rules/`, with `object_type` as

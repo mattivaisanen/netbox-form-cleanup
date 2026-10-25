@@ -54,6 +54,10 @@ class RulePageTests(NetBoxData, TestCase):
         page = self.client.get(url + '?condition=is_not')
         self.assertContains(page, 'name="condition_field"')
         self.assertContains(page, 'name="condition_values"')
+        self.assertNotContains(page, 'name="condition_pattern"')
+        page = self.client.get(url + '?condition=regex')
+        self.assertContains(page, 'name="condition_pattern"')
+        self.assertNotContains(page, 'name="condition_values"')
 
     def test_switching_condition_clears_unused_inputs(self):
         rule = self.rule(['cluster'], model=Device, condition='is', condition_field='device_type',

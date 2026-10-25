@@ -25,12 +25,14 @@ lists, related managers without objects; `False` and `0` are values).
 - `rules_for(model, where)`: those that are on for forms, object pages or
   lists, and are global or for the model.
 - `hidden_fields(rules, names, value_of, model=...)`: the names the rules
-  hide. `value_of(name)` gives the current value for conditional rules;
+  hide. `value_of(name)` gives the current value for conditional rules (each
+  target's own, or the rule's `condition_field` for all; `rules._tests`
+  holds one test per condition);
   without it, or with `always_only`, only *Always* rules count. Values
   come from a saved object (`fields.object_value()`: related objects by ID)
   or a form (`BoundField.value()`: IDs, often as text; a condition field the
   form lacks is read from `form.instance`). So comparisons go through
-  `fields.value_labels()` (*has / unless has one of these values*: an ID is looked up on the
+  `fields.value_labels()` (*value is one of*, *matches a pattern*: an ID is looked up on the
   field's related model to add its name, slug and display; all lower case)
   and `fields.comparable()` (*same as*: related objects reduced to their
   ID as text, lists sorted; an empty field counts as same, it adds

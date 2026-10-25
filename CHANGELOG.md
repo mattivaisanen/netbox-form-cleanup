@@ -4,6 +4,11 @@
 
 New:
 
+- Value conditions look at each hidden field's own value unless you pick
+  another field (renamed *While value is one of* / *Unless value is one
+  of*), and a new *While value matches a pattern* condition takes a
+  regular expression. Rules that named their own field twice are
+  simplified on upgrade.
 - Rule values match numbers however they are written, so `0` hides a total
   weight of 0.0.
 - Rules can hide rows that only exist on object pages, such as a device's

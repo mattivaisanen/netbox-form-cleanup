@@ -62,7 +62,9 @@ class FieldRuleForm(NetBoxModelForm):
     fieldsets = (
         FieldSet('name', 'description', 'enabled', 'tags', name=_('Field rule')),
         FieldSet('object_type', 'fields', name=_('Fields')),
-        FieldSet('condition', 'condition_field', 'condition_values', name=_('Condition')),
+        FieldSet(
+            'condition', 'condition_field', 'condition_values', 'condition_pattern', name=_('Condition'),
+        ),
         FieldSet(
             InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide on')),
             name=_('Scope'),
@@ -74,31 +76,34 @@ class FieldRuleForm(NetBoxModelForm):
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
+            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags',
+            'comments',
         )
 
-    #: Per condition: (label, help text) of the other field and of the values; None leaves the input out.
+    #: Per condition: (label, help text) of the other field, values and pattern; None leaves the input out.
+    OTHER_FIELD_OPTIONAL = (
+        _('Look at another field'),
+        _('Optional. Leave blank to check each hidden field\'s own value.'),
+    )
+    VALUES = (
+        _('Values'),
+        _('Comma separated. Names, slugs or IDs of objects, choice values such as active, numbers, '
+          'or true / false. Not case sensitive.'),
+    )
     CONDITION_INPUTS = {
-        ConditionChoices.ALWAYS: (None, None),
-        ConditionChoices.EMPTY: (
-            (_('Only while this field is empty'),
-             _('Optional. Leave blank to hide each field while it is empty itself.')),
-            None,
-        ),
-        ConditionChoices.IS: (
-            (_('Other field'), _('The field to look at, e.g. Device type.')),
-            (_('Values'), _('Comma separated. Names, slugs or IDs of objects, choice values such as active, '
-                            'or true / false. Not case sensitive.')),
-        ),
-        ConditionChoices.IS_NOT: (
-            (_('Other field'), _('The field to look at, e.g. Device type.')),
-            (_('Values'), _('Comma separated. Names, slugs or IDs of objects, choice values such as active, '
-                            'or true / false. Not case sensitive.')),
-        ),
+        ConditionChoices.ALWAYS: (None, None, None),
+        ConditionChoices.EMPTY: (OTHER_FIELD_OPTIONAL, None, None),
+        ConditionChoices.IS: (OTHER_FIELD_OPTIONAL, VALUES, None),
+        ConditionChoices.IS_NOT: (OTHER_FIELD_OPTIONAL, VALUES, None),
+        ConditionChoices.REGEX: (OTHER_FIELD_OPTIONAL, None, (
+            _('Pattern'),
+            _('A regular expression, found anywhere in the value, not case sensitive. '
+              'E.g. ^0(\\.0+)?$ for zero, or ^lab- for names starting with lab-.'),
+        )),
         ConditionChoices.SAME: (
             (_('Other field'), _('Each field shows only when it has a value that differs from this field, '
                                  'e.g. Out-of-band IP only when it is not the Primary IPv4.')),
-            None,
+            None, None,
         ),
     }
 
@@ -123,8 +128,9 @@ class FieldRuleForm(NetBoxModelForm):
         self.fields['condition'].help_text = _('When to hide the fields.')
         condition = get_field_value(self, 'condition') or ConditionChoices.ALWAYS
         self.condition = condition if condition in self.CONDITION_INPUTS else ConditionChoices.ALWAYS
-        field_input, values_input = self.CONDITION_INPUTS[self.condition]
-        for name, spec in (('condition_field', field_input), ('condition_values', values_input)):
+        names = ('condition_field', 'condition_values', 'condition_pattern')
+        inputs = zip(names, self.CONDITION_INPUTS[self.condition])
+        for name, spec in inputs:
             if spec is None:
                 del self.fields[name]
             else:
@@ -133,6 +139,8 @@ class FieldRuleForm(NetBoxModelForm):
             self.fields['condition_field'].required = True
         if self.condition in ConditionChoices.NEEDS_VALUES:
             self.fields['condition_values'].required = True
+        if self.condition in ConditionChoices.NEEDS_PATTERN:
+            self.fields['condition_pattern'].required = True
 
     def clean(self):
         super().clean()
@@ -141,6 +149,8 @@ class FieldRuleForm(NetBoxModelForm):
             self.instance.condition_field = ''
         if 'condition_values' not in self.fields:
             self.instance.condition_values = []
+        if 'condition_pattern' not in self.fields:
+            self.instance.condition_pattern = ''
         return self.cleaned_data
 
 
@@ -170,7 +180,8 @@ class FieldRuleImportForm(NetBoxModelImportForm):
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
+            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags',
+            'comments',
         )
 
     def clean(self):
