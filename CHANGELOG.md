@@ -1,35 +1,30 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 (2026-10-26)
+
+First release.
 
 New:
 
-- Rules can hide whole panels of object pages, such as a device's
-  Virtual Device Contexts table.
-- Value conditions look at each hidden field's own value unless you pick
-  another field (renamed *While value is one of* / *Unless value is one
-  of*), and a new *While value matches a pattern* condition takes a
-  regular expression. Rules that named their own field twice are
-  simplified on upgrade.
-- Rule values match numbers however they are written, so `0` hides a total
-  weight of 0.0.
-- Rules can hide rows that only exist on object pages, such as a device's
-  total weight (the Dimensions panel then disappears) or GPS coordinates.
-- Three more conditions: hide fields *while* or *unless another field has
-  one of these values* (related objects by name, slug or ID), and *while
-  empty or same as another field* (for example show an out-of-band IP only
-  when it differs from the primary IP). The rule form shows only the inputs
-  the chosen condition needs.
-- Field rules (*Form Cleanup → Field rules*): hide fields for one object
-  type or every type, always or only while empty, optionally only while a
-  *condition field* is empty, optionally only for some user groups.
-- Hidden fields move into a collapsed *More fields* section on add and edit
+- Field rules (*Plugins → Field Rules*): hide fields for one object type
+  or every type, optionally only for some user groups. Rules have a REST
+  API, CSV import, bulk edit, change log, tags and search.
+- Conditions: *Always*, *While empty*, *While value is one of*, *Unless
+  value is one of*, *While value matches a pattern* (regular expression)
+  and *While empty or same as another field* (for example show an
+  out-of-band IP only when it differs from the primary IP). Each field is
+  judged by its own value unless another field is picked. Values match
+  related objects by name, slug or ID and numbers by value (`0` matches
+  0.0). The rule form shows only the inputs the chosen condition needs.
+- Hidden fields move into a collapsed *More Fields* section on add and edit
   forms (also bulk edit and list filter forms for *Always* rules); their
   values are still saved.
 - Hidden fields are left out of object pages, and with *Object lists* on,
   out of object lists and *Configure table*.
+- Rules can hide rows that only exist on object pages (a device's total
+  weight, GPS coordinates) and whole panels (a device's Virtual Device
+  Contexts table).
 - Setting and user preference to hide empty fields on object pages and
   empty columns in object lists.
 - Superusers see every field unless they switch on *Apply field rules to
   me* in their preferences.
-- Rules have a REST API, CSV import, bulk edit, change log, tags and search.

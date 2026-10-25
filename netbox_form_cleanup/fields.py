@@ -254,7 +254,7 @@ def number_label(value):
 
 
 def wanted_label(value):
-    """A rule's value as value_labels() writes it: numbers normalised, lower case."""
+    """A rule's value as value_labels() writes it: numbers normalized, lower case."""
     text = value.strip()
     try:
         Decimal(text)

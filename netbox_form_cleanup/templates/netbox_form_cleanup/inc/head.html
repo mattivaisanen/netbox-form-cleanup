@@ -1,6 +1,6 @@
 {% load i18n %}
 <style>
-  /* Out of sight until the script below has moved them into "More fields". */
+  /* Out of sight until the script below has moved them into "More Fields". */
   [data-form-cleanup-hidden]:not(.form-cleanup-placed) { display: none !important; }
   .form-cleanup-collapsed > :not(:first-child) { display: none !important; }
   .form-cleanup-toggle { cursor: pointer; user-select: none; }
@@ -9,7 +9,7 @@
 </style>
 <script>
   (function () {
-    var TITLE = '{{ _("More fields")|escapejs }}';
+    var TITLE = '{{ _("More Fields")|escapejs }}';
     var HINT = '{{ _("Fields hidden by field rules. Values here are saved as usual.")|escapejs }}';
 
     function hasInputs(el) {

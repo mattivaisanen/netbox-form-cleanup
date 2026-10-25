@@ -70,7 +70,7 @@ jobs:
       - name: Install optional plugins
         if: matrix.plugins == 'all'
         run: |
-          pip install git+https://github.com/mattivaisanen/netbox-change-approval.git@28b5eb350f200a9818aafc7330335d73218a8c62  # release 0.3.3
+          pip install git+https://github.com/mattivaisanen/netbox-change-approval.git@d18dd73bb54b6d25e9a8633df62963a49aa285a7  # 0.4.0 (master, 2026-10-26)
 
       - name: Configure NetBox
         env:

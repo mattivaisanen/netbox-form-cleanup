@@ -92,7 +92,7 @@ class FieldRule(NetBoxModel):
     in_forms = models.BooleanField(
         verbose_name=_('forms'),
         default=True,
-        help_text=_('Move the fields into "More fields" on add and edit forms (bulk edit and filter forms: '
+        help_text=_('Move the fields into "More Fields" on add and edit forms (bulk edit and filter forms: '
                     '"Always" rules only).'),
     )
     in_detail = models.BooleanField(

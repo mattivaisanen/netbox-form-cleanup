@@ -60,16 +60,16 @@ class FieldRuleForm(NetBoxModelForm):
     comments = CommentField()
 
     fieldsets = (
-        FieldSet('name', 'description', 'enabled', 'tags', name=_('Field rule')),
+        FieldSet('name', 'description', 'enabled', 'tags', name=_('Field Rule')),
         FieldSet('object_type', 'fields', name=_('Fields')),
         FieldSet(
             'condition', 'condition_field', 'condition_values', 'condition_pattern', name=_('Condition'),
         ),
         FieldSet(
-            InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide on')),
+            InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide On')),
             name=_('Scope'),
         ),
-        FieldSet('groups', name=_('Users')),
+        FieldSet('groups', name=_('User Groups')),
     )
 
     class Meta:
@@ -206,9 +206,9 @@ class FieldRuleBulkEditForm(NetBoxModelBulkEditForm):
     comments = CommentField()
 
     fieldsets = (
-        FieldSet('enabled', 'description', name=_('Field rule')),
+        FieldSet('enabled', 'description', name=_('Field Rule')),
         FieldSet('in_forms', 'in_detail', 'in_tables', name=_('Scope')),
-        FieldSet('groups', name=_('Users')),
+        FieldSet('groups', name=_('User Groups')),
     )
     nullable_fields = ('description', 'groups', 'comments')
 
@@ -219,7 +219,7 @@ class FieldRuleFilterForm(NetBoxModelFilterSetForm):
         FieldSet('q', 'filter_id', 'tag'),
         FieldSet('enabled', 'object_type_id', 'field', 'condition', name=_('Rule')),
         FieldSet('in_forms', 'in_detail', 'in_tables', name=_('Scope')),
-        FieldSet('group_id', name=_('Users')),
+        FieldSet('group_id', name=_('User Groups')),
     )
     enabled = forms.NullBooleanField(
         label=_('Enabled'), required=False, widget=forms.Select(choices=BOOLEAN_WITH_BLANK_CHOICES),

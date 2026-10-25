@@ -1,6 +1,6 @@
 # netbox-form-cleanup
 
-A NetBox plugin that hides the fields your organisation doesn't use from
+A NetBox plugin that hides the fields your organization doesn't use from
 NetBox's web UI: on add and edit forms, on object pages and in object lists.
 Hide a field everywhere, only for one object type, or only while it is
 empty. Nothing is deleted and nothing is blocked: hiding only changes what
@@ -9,7 +9,7 @@ as they are.
 
 ## What it does
 
-- **Field rules, managed in the UI.** *Form Cleanup → Field rules* lists the
+- **Field rules, managed in the UI.** *Plugins → Field Rules* lists the
   rules. A rule names one or more fields (custom fields too) and either one
   object type or every object type that has those fields. Rules are normal
   NetBox objects: change log, tags, custom fields, CSV import, bulk edit,
@@ -34,7 +34,7 @@ as they are.
     termination's upstream speed only when it differs from the port speed.
   The rule form only shows the inputs the chosen condition needs.
 - **Forms keep working.** On add and edit forms hidden fields are not
-  removed: they move into a collapsed **More fields** section at the bottom
+  removed: they move into a collapsed **More Fields** section at the bottom
   of the form. Open it to fill one in; its value is saved as usual. The
   section opens by itself when one of its fields has an error. A required
   field that has no value yet is never hidden. Bulk edit forms and the
@@ -68,7 +68,7 @@ as they are.
 - No other NetBox plugins. Works next to netbox-change-approval (rule
   changes then need approval like any other change).
 
-## Install
+## Installation
 
 ```bash
 pip install git+https://github.com/mattivaisanen/netbox-form-cleanup.git
@@ -84,9 +84,20 @@ PLUGINS = ['netbox_form_cleanup']
 python manage.py migrate
 ```
 
+## Upgrading
+
+```bash
+pip install --upgrade git+https://github.com/mattivaisanen/netbox-form-cleanup.git
+python manage.py migrate
+```
+
+Then restart NetBox and its worker. See [CHANGELOG.md](CHANGELOG.md) for
+what changed; upgrades never touch your rules except where the changelog
+says so.
+
 Settings and permissions: [docs/configuration.md](docs/configuration.md).
 How it works inside: [DEVELOPER.md](DEVELOPER.md).
 
 ## License
 
-Apache-2.0.
+Apache-2.0, see [LICENSE](LICENSE).
