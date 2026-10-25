@@ -138,8 +138,9 @@ def _conditional(rule, targets, value_of, model):
         found = bool(value_labels(model, rule.condition_field, value_of(rule.condition_field)) & wanted)
         return targets if found == (condition == ConditionChoices.IS) else []
     if condition == ConditionChoices.SAME:
+        # Shown only while it adds something: set and different from the other field.
         other = comparable(value_of(rule.condition_field))
-        return [name for name in targets if comparable(value_of(name)) == other]
+        return [name for name in targets if (value := comparable(value_of(name))) is None or value == other]
     return []
 
 

@@ -43,6 +43,30 @@ class RulePageTests(NetBoxData, TestCase):
         self.assertEqual(response.status_code, 302, response.content[:3000])
         self.assertEqual(FieldRule.objects.get(name='Asset tags').fields, ['asset_tag'])
 
+    def test_form_shows_only_what_the_condition_needs(self):
+        url = reverse(URL + 'fieldrule_add')
+        page = self.client.get(url)
+        self.assertNotContains(page, 'name="condition_field"')
+        self.assertNotContains(page, 'name="condition_values"')
+        page = self.client.get(url + '?condition=same')
+        self.assertContains(page, 'name="condition_field"')
+        self.assertNotContains(page, 'name="condition_values"')
+        page = self.client.get(url + '?condition=is_not')
+        self.assertContains(page, 'name="condition_field"')
+        self.assertContains(page, 'name="condition_values"')
+
+    def test_switching_condition_clears_unused_inputs(self):
+        rule = self.rule(['cluster'], model=Device, condition='is', condition_field='device_type',
+                         condition_values=['vm-host'])
+        object_type = ObjectType.objects.get_for_model(Device)
+        response = self.client.post(reverse(URL + 'fieldrule_edit', args=[rule.pk]), {
+            'name': rule.name, 'object_type': object_type.pk, 'fields': ['cluster'],
+            'condition': 'always', 'in_forms': 'on', 'in_detail': 'on', 'enabled': 'on',
+        })
+        self.assertEqual(response.status_code, 302)
+        rule.refresh_from_db()
+        self.assertEqual((rule.condition, rule.condition_field, rule.condition_values), ('always', '', []))
+
     def test_csv_import(self):
         response = self.client.post(reverse(URL + 'fieldrule_bulk_import'), {
             'data': 'name,object_type,fields,condition,in_tables\n'

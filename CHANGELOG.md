@@ -4,10 +4,11 @@
 
 New:
 
-- Two more kinds of condition: hide fields while another field *is (or is
-  not) one of* some values (related objects by name, slug or ID), and hide a
-  field while it is *the same as* another field (for example an
-  out-of-band IP that equals the primary IP).
+- Three more conditions: hide fields *while* or *unless another field has
+  one of these values* (related objects by name, slug or ID), and *while
+  empty or same as another field* (for example show an out-of-band IP only
+  when it differs from the primary IP). The rule form shows only the inputs
+  the chosen condition needs.
 - Field rules (*Form Cleanup → Field rules*): hide fields for one object
   type or every type, always or only while empty, optionally only while a
   *condition field* is empty, optionally only for some user groups.

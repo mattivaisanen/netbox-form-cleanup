@@ -20,14 +20,14 @@ as they are.
     *condition field*, all the fields hide while that one is empty.
     Example: hide an interface's wireless channel, frequency, width and
     power while its *Wireless role* is empty, so they only show on radios.
-  - *When condition field is (not) one of the values*: hide the fields
-    while another field has (or doesn't have) one of the listed values.
-    Related objects match by name, slug or ID. Example: hide a site's
-    facility and time zone unless its status is `active`.
-  - *When same as condition field*: hide each field while it has the same
-    value as the condition field, so it only shows when it adds something.
-    Example: a circuit termination's upstream speed when it equals the
-    port speed.
+  - *While another field has one of these values* / *Unless another
+    field has one of these values*: related objects match by name, slug
+    or ID. Example: hide a site's facility and time zone unless its status
+    is `active`.
+  - *While empty or same as another field*: each field shows only when it
+    has a value that differs from the other field. Example: a circuit
+    termination's upstream speed only when it differs from the port speed.
+  The rule form only shows the inputs the chosen condition needs.
 - **Forms keep working.** On add and edit forms hidden fields are not
   removed: they move into a collapsed **More fields** section at the bottom
   of the form. Open it to fill one in; its value is saved as usual. The

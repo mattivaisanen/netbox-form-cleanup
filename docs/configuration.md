@@ -41,9 +41,9 @@ Admins can set defaults for everyone with NetBox's own
 | --- | --- |
 | Object type | One object type, or blank for every type that has the fields. |
 | Fields | The fields to hide, by name as on the object's form (`serial`, `tenant`). Custom fields are `cf_<name>`. The form offers the object type's fields, or every field name of every type when blank. |
-| Condition | *Always*; *When empty*; *When condition field is one of the values*; *When condition field is not one of the values*; *When same as condition field*. |
-| Condition field | The field a condition looks at. *When empty*: hide all the fields while this one is empty (blank: each field while it is empty itself). *Is / is not one of*: compared with the values (required). *Same as*: each field hides while it has this field's value (required). |
-| Condition values | *Is / is not one of* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; anything else by its text. Not case sensitive. A field without a value matches nothing, so *is not one of* hides the fields while the condition field is empty. |
+| Condition | *Always*; *While empty*; *While another field has one of these values*; *Unless another field has one of these values*; *While empty or same as another field*. The form shows only the inputs the chosen condition needs. |
+| Condition field (form: *Only while this field is empty* / *Other field*) | The field a condition looks at. *While empty*: optional; hide all the fields while this one is empty (blank: each field while it is empty itself). *Has / unless has one of these values*: compared with the values (required). *Same as*: each field shows only when it has a value that differs from this one (required). |
+| Condition values (form: *Values*) | *Has / unless has one of these values* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; anything else by its text. Not case sensitive. A field without a value matches nothing, so *unless* hides the fields while the other field is empty. |
 | Forms | Move the fields into *More fields* on add and edit forms; bulk edit and filter forms with *Always* rules. On by default. |
 | Object pages | Leave the fields out of object pages. On by default. |
 | Object lists | Remove the fields' columns from object lists. *Always* rules only. Off by default. |

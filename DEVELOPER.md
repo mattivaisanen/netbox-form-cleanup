@@ -27,10 +27,14 @@ lists, related managers without objects; `False` and `0` are values).
   come from a saved object (`fields.object_value()`: related objects by ID)
   or a form (`BoundField.value()`: IDs, often as text; a condition field the
   form lacks is read from `form.instance`). So comparisons go through
-  `fields.value_labels()` (*is / is not one of*: an ID is looked up on the
+  `fields.value_labels()` (*has / unless has one of these values*: an ID is looked up on the
   field's related model to add its name, slug and display; all lower case)
   and `fields.comparable()` (*same as*: related objects reduced to their
-  ID as text, lists sorted). A value that cannot be read hides nothing.
+  ID as text, lists sorted; an empty field counts as same, it adds
+  nothing). A value that cannot be read hides nothing. The rule form
+  (`forms.FieldRuleForm.CONDITION_INPUTS`) redraws on condition change
+  (HTMXSelect) and leaves out inputs the condition does not use; saving
+  clears their stored values.
 - `hide_empty(request, 'detail' | 'tables')`: the user's preference, else
   the setting.
 

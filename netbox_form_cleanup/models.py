@@ -28,10 +28,10 @@ class ConditionChoices(ChoiceSet):
 
     CHOICES = (
         (ALWAYS, _('Always'), 'blue'),
-        (EMPTY, _('When empty'), 'cyan'),
-        (IS, _('When condition field is one of the values'), 'purple'),
-        (IS_NOT, _('When condition field is not one of the values'), 'purple'),
-        (SAME, _('When same as condition field'), 'orange'),
+        (EMPTY, _('While empty'), 'cyan'),
+        (IS, _('While another field has one of these values'), 'purple'),
+        (IS_NOT, _('Unless another field has one of these values'), 'purple'),
+        (SAME, _('While empty or same as another field'), 'orange'),
     )
 
     #: Conditions that need a condition field.
@@ -71,7 +71,7 @@ class FieldRule(NetBoxModel):
         help_text=_(
             'The field the condition looks at. "When empty": hide all the fields while this one is empty '
             '(blank: each field while it is empty itself). "Is one of" / "is not one of": compare this '
-            "field with the values. \"Same as\": hide each field while it has this field's value."
+            "field with the values. \"Same as\": hide each field while it is empty or has this field's value."
         ),
     )
     condition_values = ArrayField(
@@ -152,18 +152,18 @@ class FieldRule(NetBoxModel):
         self.condition_values = [v.strip() for v in (self.condition_values or []) if v and v.strip()]
         if self.condition_field:
             if self.condition == ConditionChoices.ALWAYS:
-                errors['condition_field'] = _('"Always" needs no condition field.')
+                errors['condition_field'] = _('"Always" needs no other field.')
             elif known is not None and self.condition_field not in known:
                 errors['condition_field'] = _('Unknown field: {name}.').format(name=self.condition_field)
         elif self.condition in ConditionChoices.NEEDS_FIELD:
-            errors['condition_field'] = _('Pick the field this condition looks at.')
+            errors['condition_field'] = _('Pick the other field.')
         if self.condition in ConditionChoices.NEEDS_VALUES:
             if not self.condition_values:
-                errors['condition_values'] = _('Name at least one value.')
+                errors['condition_values'] = _('Enter at least one value.')
         elif self.condition_values:
-            errors['condition_values'] = _('Values only work with "is one of" / "is not one of".')
+            errors['condition_values'] = _('Values only work with "has one of these values" conditions.')
         if self.condition == ConditionChoices.SAME and self.condition_field in self.fields:
-            errors['condition_field'] = _('A field is always the same as itself; pick another one.')
+            errors['condition_field'] = _('Pick a field other than the hidden ones.')
         if self.in_tables and self.condition != ConditionChoices.ALWAYS:
             errors['in_tables'] = _('Object lists only support "Always" rules.')
         if not (self.in_forms or self.in_detail or self.in_tables):

@@ -210,6 +210,9 @@ class ValueConditionTests(NetBoxData, TestCase):
         Device.objects.filter(pk=self.plain.pk).update(primary_ip4=self.ip1, oob_ip=self.ip1)
         same = Device.objects.get(pk=self.plain.pk)
         self.assertEqual(self.hidden(rule, same, ['oob_ip']), {'oob_ip'})
+        # An empty field adds nothing either.
+        Device.objects.filter(pk=self.plain.pk).update(oob_ip=None)
+        self.assertEqual(self.hidden(rule, Device.objects.get(pk=self.plain.pk), ['oob_ip']), {'oob_ip'})
         Device.objects.filter(pk=self.plain.pk).update(oob_ip=self.ip2)
         other = Device.objects.get(pk=self.plain.pk)
         self.assertEqual(self.hidden(rule, other, ['oob_ip']), set())

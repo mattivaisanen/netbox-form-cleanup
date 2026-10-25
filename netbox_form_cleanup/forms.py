@@ -77,6 +77,31 @@ class FieldRuleForm(NetBoxModelForm):
             'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
         )
 
+    #: Per condition: (label, help text) of the other field and of the values; None leaves the input out.
+    CONDITION_INPUTS = {
+        ConditionChoices.ALWAYS: (None, None),
+        ConditionChoices.EMPTY: (
+            (_('Only while this field is empty'),
+             _('Optional. Leave blank to hide each field while it is empty itself.')),
+            None,
+        ),
+        ConditionChoices.IS: (
+            (_('Other field'), _('The field to look at, e.g. Device type.')),
+            (_('Values'), _('Comma separated. Names, slugs or IDs of objects, choice values such as active, '
+                            'or true / false. Not case sensitive.')),
+        ),
+        ConditionChoices.IS_NOT: (
+            (_('Other field'), _('The field to look at, e.g. Device type.')),
+            (_('Values'), _('Comma separated. Names, slugs or IDs of objects, choice values such as active, '
+                            'or true / false. Not case sensitive.')),
+        ),
+        ConditionChoices.SAME: (
+            (_('Other field'), _('Each field shows only when it has a value that differs from this field, '
+                                 'e.g. Out-of-band IP only when it is not the Primary IPv4.')),
+            None,
+        ),
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         object_type = None
@@ -92,6 +117,31 @@ class FieldRuleForm(NetBoxModelForm):
         choices += [(name, name) for name in saved if name not in known]
         self.fields['fields'].choices = choices
         self.fields['condition_field'].choices = [('', '---------'), *choices]
+
+        # Changing the condition draws the form again with only the inputs it needs.
+        self.fields['condition'].widget = HTMXSelect(choices=ConditionChoices)
+        self.fields['condition'].help_text = _('When to hide the fields.')
+        condition = get_field_value(self, 'condition') or ConditionChoices.ALWAYS
+        self.condition = condition if condition in self.CONDITION_INPUTS else ConditionChoices.ALWAYS
+        field_input, values_input = self.CONDITION_INPUTS[self.condition]
+        for name, spec in (('condition_field', field_input), ('condition_values', values_input)):
+            if spec is None:
+                del self.fields[name]
+            else:
+                self.fields[name].label, self.fields[name].help_text = spec
+        if self.condition in ConditionChoices.NEEDS_FIELD:
+            self.fields['condition_field'].required = True
+        if self.condition in ConditionChoices.NEEDS_VALUES:
+            self.fields['condition_values'].required = True
+
+    def clean(self):
+        super().clean()
+        # Inputs the chosen condition does not use are not on the form: clear their saved values.
+        if 'condition_field' not in self.fields:
+            self.instance.condition_field = ''
+        if 'condition_values' not in self.fields:
+            self.instance.condition_values = []
+        return self.cleaned_data
 
 
 class FieldRuleImportForm(NetBoxModelImportForm):
