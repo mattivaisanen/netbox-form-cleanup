@@ -16,7 +16,7 @@ class ObjectTypeAttr(attrs.ObjectAttribute):
 
 
 class FieldRulePanel(panels.ObjectAttributesPanel):
-    title = _('Field rule')
+    title = _('Field Rule')
 
     name = attrs.TextAttr('name')
     description = attrs.TextAttr('description')

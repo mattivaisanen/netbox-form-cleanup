@@ -62,7 +62,7 @@ over cosmetics). Check these on every NetBox upgrade; each has tests.
 | `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. |
 | `netbox.tables.BaseTable._get_columns` | `hooks/tables.py` | Columns hidden for being empty still count as selected, so *Configure table* keeps them. |
 
-The "More fields" section itself is built in the browser by
+The "More Fields" section itself is built in the browser by
 `templates/netbox_form_cleanup/inc/head.html`, added to every page's
 `<head>` by a template extension (`template_content.py`). Its CSS hides
 marked fields until the script has moved them, so nothing jumps. The

@@ -18,7 +18,7 @@ PLUGINS_CONFIG = {
 | `hide_empty_detail` | bool | `False` | Leave out fields without a value on object pages, for users whose preference is *Default*. |
 | `hide_empty_tables` | bool | `False` | Leave out columns without a value on the current page of object lists, for users whose preference is *Default*. |
 
-Everything else is set per rule under **Form Cleanup → Field rules** (see
+Everything else is set per rule under **Plugins → Field Rules** (see
 the README).
 
 ## User preferences
@@ -45,7 +45,7 @@ Admins can set defaults for everyone with NetBox's own
 | Condition field (form: *Look at another field* / *Other field*) | Optional except for *same as*. Blank: each hidden field is judged by its own value. Set: that field's value decides for all the hidden fields. *Same as*: each field shows only when it has a value that differs from this one. |
 | Condition values (form: *Values*) | *Value is one of* / *unless value is one of* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; numbers by value (`0` matches 0.0); anything else by its text. Not case sensitive. A field without a value matches nothing, so *unless* hides empty fields too. |
 | Condition pattern (form: *Pattern*) | *Matches a pattern* only. A Python regular expression, searched anywhere in the value, not case sensitive; related objects match by name, slug or ID, numbers as written without trailing zeros (`^0$` matches 0.0). An empty value matches nothing. |
-| Forms | Move the fields into *More fields* on add and edit forms; bulk edit and filter forms with *Always* rules. On by default. |
+| Forms | Move the fields into *More Fields* on add and edit forms; bulk edit and filter forms with *Always* rules. On by default. |
 | Object pages | Leave the fields out of object pages. On by default. |
 | Object lists | Remove the fields' columns from object lists. *Always* rules only. Off by default. |
 | User groups | Apply only to members of these groups. Blank: everyone. |

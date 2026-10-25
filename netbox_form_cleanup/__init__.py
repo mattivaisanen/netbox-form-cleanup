@@ -3,7 +3,7 @@ Hide fields from NetBox's web UI: everywhere, per object type, always or
 only while they are empty.
 
 Admins add *field rules* (models.FieldRule) in the UI. On add and edit forms
-hidden fields move into a collapsed "More fields" section (their values are
+hidden fields move into a collapsed "More Fields" section (their values are
 still submitted); on object pages they are left out of the attribute panels;
 optionally they are removed from object lists. A setting and a per-user
 preference also leave out every empty field on object pages and every empty
@@ -32,7 +32,7 @@ class FormCleanupConfig(PluginConfig):
         'hide_empty_tables': False,
     }
 
-    menu = 'navigation.menu'
+    menu_items = 'navigation.menu_items'
     template_extensions = 'template_content.template_extensions'
     user_preferences = 'preferences.preferences'
     search_indexes = 'search.indexes'

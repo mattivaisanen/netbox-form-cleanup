@@ -1,6 +1,6 @@
 """
 Forms: hidden fields are marked when drawn and moved into a collapsed
-"More fields" section at the end of the form (inc/head.html).
+"More Fields" section at the end of the form (inc/head.html).
 
 NetBox draws every form field, whether the form uses fieldsets or a
 hand-written template (the device form does), through the `render_field`
