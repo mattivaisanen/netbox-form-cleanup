@@ -30,6 +30,7 @@ class RuleValidationTests(NetBoxData, TestCase):
         self.assertIn('asset_tag', names)
         self.assertNotIn('id', names)
         self.assertNotIn('interfaces', names)  # reverse relation
+        self.assertIn('total_weight', names)  # a row on the device page, not a field
         self.assertIn('asset_tag', {name for name, _label in global_field_choices()})
 
     def test_unknown_field_refused(self):

@@ -117,6 +117,15 @@ class DetailTests(NetBoxData, TestCase):
         self.assertContains(page, 'Primary IPv4</th>')
         self.assertNotContains(page, 'Out-of-band IP</th>')
 
+    def test_page_only_attribute(self):
+        """Total weight is no field, only a row on the device page; hiding it drops the whole Dimensions panel."""
+        page = self.client.get(self.plain.get_absolute_url())
+        self.assertContains(page, 'Total weight</th>')
+        self.rule(['total_weight'], model=Device)
+        page = self.client.get(self.plain.get_absolute_url())
+        self.assertNotContains(page, 'Total weight</th>')
+        self.assertNotContains(page, '>Dimensions<')
+
     def test_hide_empty(self):
         self.set_pref(self.user, 'hide_empty_detail', 'on')
         page = self.client.get(self.plain.get_absolute_url())

@@ -13,7 +13,10 @@ as they are.
   rules. A rule names one or more fields (custom fields too) and either one
   object type or every object type that has those fields. Rules are normal
   NetBox objects: change log, tags, custom fields, CSV import, bulk edit,
-  REST API and permissions all work as for any other object.
+  REST API and permissions all work as for any other object. Besides real
+  fields, a rule can name rows that only exist on an object page (a
+  device's *Total weight*, *GPS coordinates*, *Region*...); hiding the only
+  row of a panel removes the panel.
 - **Always, or on a condition.** An *Always* rule hides its fields for
   good. Conditional rules look at the object's current values:
   - *When empty*: each field hides while it has no value, or, with a

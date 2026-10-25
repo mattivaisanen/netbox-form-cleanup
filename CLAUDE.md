@@ -18,7 +18,11 @@ netbox-naming-convention.
 - **Matti's NetBox:** netbox-docker in ~/netbox-docker, plugin source
   bind-mounted into the netbox and netbox-worker containers. Matti restarts
   NetBox. Keep test runs minimal (token cost); the test DB is shared, so
-  don't run tests while another thread does.
+  don't run tests while another thread does. Run tests in the container
+  with separate Redis DBs, or their jobs leak into the live DB and crash
+  the worker: `sudo -n docker compose exec -T -e REDIS_DATABASE=2
+  -e REDIS_CACHE_DATABASE=3 netbox /opt/netbox/venv/bin/python
+  /opt/netbox/netbox/manage.py test netbox_form_cleanup --keepdb --noinput`.
 - **NetBox support:** only claim what CI tests. `min_version` is the oldest
   release in the CI matrix; keep README "Requirements" in sync. Migrations
   depend only on migrations that exist in that oldest release.

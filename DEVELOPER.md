@@ -10,6 +10,9 @@ a model's forward fields and many-to-many fields, plus `cf_<name>` for
 custom fields; `global_field_choices()`: the union over every public model)
 and what counts as empty (`is_empty()`: `None`, blank strings, empty
 lists, related managers without objects; `False` and `0` are values).
+`field_choices()` also offers `page_attributes()`: the row names of the
+`ObjectAttributesPanel`s in the model's registered detail view layout
+(`registry['views']`), for rows that are no field (`total_weight`).
 `FieldRule.clean()` checks names against those lists.
 
 `rules.py` decides what applies to the current request:

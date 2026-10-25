@@ -34,7 +34,51 @@ def field_choices(model):
         choices.append((field.name, _label(field)))
     for cf in CustomField.objects.get_for_model(model):
         choices.append((f'{CF_PREFIX}{cf.name}', f'{cf.label or cf.name} (custom field)'))
+    known = {name for name, _label in choices}
+    for name, label in page_attributes(model):
+        if name not in known:
+            choices.append((name, f'{label} (object page only)'))
+            known.add(name)
     return choices
+
+
+def _panels(item):
+    """Every panel in a layout (rows → columns → panels)."""
+    from netbox.ui.layout import Column, Layout, Row
+
+    if isinstance(item, (Layout, Row, Column)):
+        for child in item:
+            yield from _panels(child)
+    else:
+        yield item
+
+
+def page_attributes(model):
+    """
+    (name, label) of rows on the model's object page that are not fields of
+    their own, such as a device's total weight or GPS coordinates: read from
+    the attribute panels of the page's layout.
+    """
+    from netbox.registry import registry
+    from netbox.ui.panels import ObjectAttributesPanel
+
+    views = registry['views'].get(model._meta.app_label, {}).get(model._meta.model_name, [])
+    out = []
+    for entry in views:
+        layout = getattr(entry['view'], 'layout', None)
+        if entry.get('name') != '' or not entry.get('detail', True) or layout is None:
+            continue
+        try:
+            panels = list(_panels(layout))
+        except Exception:
+            continue
+        for panel in panels:
+            if not isinstance(panel, ObjectAttributesPanel):
+                continue
+            for name, attr in panel._attrs.items():
+                label = attr.label or ObjectAttributesPanel._name_to_label(name)
+                out.append((name, capfirst(str(label))))
+    return out
 
 
 def public_models():

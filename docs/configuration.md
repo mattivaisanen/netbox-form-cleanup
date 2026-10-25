@@ -40,7 +40,7 @@ Admins can set defaults for everyone with NetBox's own
 | Field | Meaning |
 | --- | --- |
 | Object type | One object type, or blank for every type that has the fields. |
-| Fields | The fields to hide, by name as on the object's form (`serial`, `tenant`). Custom fields are `cf_<name>`. The form offers the object type's fields, or every field name of every type when blank. |
+| Fields | The fields to hide, by name as on the object's form (`serial`, `tenant`). Custom fields are `cf_<name>`. Rows that only exist on the object page (a device's `total_weight`, `gps_coordinates`) are offered too, marked *object page only*; they have no form field or column. The form offers the object type's fields, or every field name of every type when blank. |
 | Condition | *Always*; *While empty*; *While another field has one of these values*; *Unless another field has one of these values*; *While empty or same as another field*. The form shows only the inputs the chosen condition needs. |
 | Condition field (form: *Only while this field is empty* / *Other field*) | The field a condition looks at. *While empty*: optional; hide all the fields while this one is empty (blank: each field while it is empty itself). *Has / unless has one of these values*: compared with the values (required). *Same as*: each field shows only when it has a value that differs from this one (required). |
 | Condition values (form: *Values*) | *Has / unless has one of these values* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; anything else by its text. Not case sensitive. A field without a value matches nothing, so *unless* hides the fields while the other field is empty. |

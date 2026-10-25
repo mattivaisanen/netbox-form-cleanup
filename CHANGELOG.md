@@ -4,6 +4,8 @@
 
 New:
 
+- Rules can hide rows that only exist on object pages, such as a device's
+  total weight (the Dimensions panel then disappears) or GPS coordinates.
 - Three more conditions: hide fields *while* or *unless another field has
   one of these values* (related objects by name, slug or ID), and *while
   empty or same as another field* (for example show an out-of-band IP only
