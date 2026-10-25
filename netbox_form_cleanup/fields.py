@@ -55,32 +55,72 @@ def _panels(item):
         yield item
 
 
-def page_attributes(model):
+#: Prefix of rule field names that stand for a whole panel of an object page.
+PANEL_PREFIX = 'panel:'
+
+
+def panel_key(panel):
     """
-    (name, label) of rows on the model's object page that are not fields of
-    their own, such as a device's total weight or GPS coordinates: read from
-    the attribute panels of the page's layout.
+    The rule field name of an object page panel: panel:<app.model> for a
+    table of related objects, panel:<title> (slugified) for others, None
+    for panels without a fixed title (plugin content, templates).
     """
+    from django.utils.text import slugify
+    from netbox.ui.panels import ObjectsTablePanel
+
+    if isinstance(panel, ObjectsTablePanel):
+        return f'{PANEL_PREFIX}{panel.model_label.lower()}'
+    title = getattr(panel, 'title', None)
+    if not title:
+        return None
+    return f'{PANEL_PREFIX}{slugify(str(title))}'
+
+
+def panel_label(panel):
+    from netbox.ui.panels import ObjectsTablePanel
+
+    if isinstance(panel, ObjectsTablePanel) and not panel.title:
+        try:
+            return capfirst(str(panel.model._meta.verbose_name_plural))
+        except Exception:
+            return panel.model_label
+    return capfirst(str(panel.title))
+
+
+def _page_panels(model):
+    """Every panel of the model's object page (its registered detail view's layout)."""
     from netbox.registry import registry
-    from netbox.ui.panels import ObjectAttributesPanel
 
     views = registry['views'].get(model._meta.app_label, {}).get(model._meta.model_name, [])
-    out = []
     for entry in views:
         layout = getattr(entry['view'], 'layout', None)
         if entry.get('name') != '' or not entry.get('detail', True) or layout is None:
             continue
         try:
-            panels = list(_panels(layout))
+            yield from list(_panels(layout))
         except Exception:
             continue
-        for panel in panels:
-            if not isinstance(panel, ObjectAttributesPanel):
-                continue
+
+
+def page_attributes(model):
+    """
+    (name, label) of what a rule can hide on the model's object page beyond
+    its fields: rows that are no field of their own (a device's total
+    weight, GPS coordinates) and whole panels (panel:<...>, e.g. a device's
+    Virtual Device Contexts table).
+    """
+    from netbox.ui.panels import ObjectAttributesPanel
+
+    rows, panels = [], []
+    for panel in _page_panels(model):
+        key = panel_key(panel)
+        if key:
+            panels.append((key, f'{panel_label(panel)} panel'))
+        if isinstance(panel, ObjectAttributesPanel):
             for name, attr in panel._attrs.items():
                 label = attr.label or ObjectAttributesPanel._name_to_label(name)
-                out.append((name, capfirst(str(label))))
-    return out
+                rows.append((name, capfirst(str(label))))
+    return rows + panels
 
 
 def public_models():

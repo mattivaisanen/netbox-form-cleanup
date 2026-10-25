@@ -8,15 +8,16 @@ using NetBox's layouts are built from:
   left with no rows.
 - CustomFieldsPanel.get_context: drop custom fields (cf_<name>).
 - CommentsPanel / TagsPanel should_render: skip when hidden or empty.
+- Panel.render: skip a whole panel a rule names as panel:<...>.
 
 Pages drawn from hand-written templates are not touched.
 """
 import functools
 
 from extras.ui.panels import CustomFieldsPanel, TagsPanel
-from netbox.ui.panels import CommentsPanel, ObjectAttributesPanel
+from netbox.ui.panels import CommentsPanel, ObjectAttributesPanel, Panel
 
-from ..fields import CF_PREFIX, is_empty, object_value
+from ..fields import CF_PREFIX, is_empty, object_value, panel_key
 from ..rules import DETAIL, get_request, hidden_fields, hide_empty, rules_for
 
 #: Set in a panel's context when every row was left out.
@@ -169,7 +170,32 @@ def _wrap_single_field(panel_class, field_of):
     panel_class.should_render = wrapped
 
 
+def _wrap_whole_panels():
+    """Any panel a rule names as panel:<...> (fields.panel_key) is not drawn."""
+    render = Panel.render
+    if getattr(render, '_form_cleanup', False):
+        return
+
+    @functools.wraps(render)
+    def wrapped(self, context):
+        obj = context.get('object')
+        if obj is not None and hasattr(obj, '_meta'):
+            try:
+                key = panel_key(self)
+                if key:
+                    rules, _drop_empty = _detail_state(obj)
+                    if key in _hidden(rules, obj, {key}):
+                        return ''
+            except Exception:
+                pass
+        return render(self, context)
+
+    wrapped._form_cleanup = True
+    Panel.render = wrapped
+
+
 def apply():
+    _wrap_whole_panels()
     _wrap_attributes()
     _wrap_custom_fields()
     _wrap_single_field(CommentsPanel, lambda panel: panel.field_name)

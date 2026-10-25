@@ -12,7 +12,9 @@ and what counts as empty (`is_empty()`: `None`, blank strings, empty
 lists, related managers without objects; `False` and `0` are values).
 `field_choices()` also offers `page_attributes()`: the row names of the
 `ObjectAttributesPanel`s in the model's registered detail view layout
-(`registry['views']`), for rows that are no field (`total_weight`).
+(`registry['views']`), for rows that are no field (`total_weight`), and
+every panel of that layout as `panel:<key>` (`fields.panel_key()`: the
+model label for `ObjectsTablePanel`, else the slugified title).
 `FieldRule.clean()` checks names against those lists.
 
 `rules.py` decides what applies to the current request:
@@ -55,6 +57,7 @@ over cosmetics). Check these on every NetBox upgrade; each has tests.
 | `utilities.templatetags.form_helpers.render_field` (template tag) | `hooks/forms.py` | Every form field NetBox draws goes through it, in fieldset-based forms and hand-written form templates (the device form is one) alike. The replacement draws the same template and wraps a hidden field in `<div data-form-cleanup-hidden="name">`. It is registered under the same name in NetBox's tag library during `ready()`, before any template is compiled. |
 | `netbox.ui.panels.ObjectAttributesPanel.get_context` / `should_render` | `hooks/panels.py` | Object pages: drops attribute rows. Row names come from `panel._attrs` in the order NetBox lists them (respecting `only`/`exclude`); if the counts differ the panel is left alone. A row stands for its own name and, when its accessor is a plain field name, that field too (the device panel's *Parent device* reads `parent_bay`). A panel left without rows is not rendered. |
 | `extras.ui.panels.CustomFieldsPanel.get_context` | `hooks/panels.py` | Drops `cf_<name>` fields and empty ones. |
+| `netbox.ui.panels.Panel.render` | `hooks/panels.py` | Returns nothing for a panel a rule names as `panel:<key>`. |
 | `CommentsPanel.should_render`, `TagsPanel.should_render` | `hooks/panels.py` | Skips the panel when `comments` / `tags` is hidden, or empty and empty fields are hidden. |
 | `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. |
 | `netbox.tables.BaseTable._get_columns` | `hooks/tables.py` | Columns hidden for being empty still count as selected, so *Configure table* keeps them. |

@@ -16,7 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from netbox.models import NetBoxModel
 from utilities.choices import ChoiceSet
 
-from .fields import field_choices, global_field_choices
+from .fields import PANEL_PREFIX, field_choices, global_field_choices
 
 __all__ = ('ConditionChoices', 'FieldRule')
 
@@ -187,6 +187,9 @@ class FieldRule(NetBoxModel):
                     errors['condition_pattern'] = _('Not a valid pattern: {error}.').format(error=e)
         elif self.condition_pattern:
             errors['condition_pattern'] = _('A pattern only works with "matches a pattern".')
+        panels = [name for name in self.fields if name.startswith(PANEL_PREFIX)]
+        if panels and self.condition != ConditionChoices.ALWAYS:
+            errors['condition'] = _('Whole panels can only be hidden with "Always".')
         if self.in_tables and self.condition != ConditionChoices.ALWAYS:
             errors['in_tables'] = _('Object lists only support "Always" rules.')
         if not (self.in_forms or self.in_detail or self.in_tables):

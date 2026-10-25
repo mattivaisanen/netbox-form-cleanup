@@ -16,7 +16,8 @@ as they are.
   REST API and permissions all work as for any other object. Besides real
   fields, a rule can name rows that only exist on an object page (a
   device's *Total weight*, *GPS coordinates*, *Region*...); hiding the only
-  row of a panel removes the panel.
+  row of a panel removes the panel. Whole panels can be hidden too
+  (*Virtual Device Contexts panel*, *Management panel*...), with *Always*.
 - **Always, or on a condition.** An *Always* rule hides its fields for
   good. Conditional rules look at each field's own value, or at another
   field you pick, which then decides for all of them:

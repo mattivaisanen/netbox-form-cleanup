@@ -31,6 +31,10 @@ class RuleValidationTests(NetBoxData, TestCase):
         self.assertNotIn('id', names)
         self.assertNotIn('interfaces', names)  # reverse relation
         self.assertIn('total_weight', names)  # a row on the device page, not a field
+        self.assertIn('panel:dcim.virtualdevicecontext', names)  # a whole panel
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['panel:dcim.virtualdevicecontext'], model=Device, condition=ConditionChoices.EMPTY)
+        self.assertIn('condition', cm.exception.message_dict)
         self.assertIn('asset_tag', {name for name, _label in global_field_choices()})
 
     def test_unknown_field_refused(self):

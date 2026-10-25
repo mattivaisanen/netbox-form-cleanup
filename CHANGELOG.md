@@ -4,6 +4,8 @@
 
 New:
 
+- Rules can hide whole panels of object pages, such as a device's
+  Virtual Device Contexts table.
 - Value conditions look at each hidden field's own value unless you pick
   another field (renamed *While value is one of* / *Unless value is one
   of*), and a new *While value matches a pattern* condition takes a

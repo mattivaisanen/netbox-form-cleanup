@@ -126,6 +126,17 @@ class DetailTests(NetBoxData, TestCase):
         self.assertNotContains(page, 'Total weight</th>')
         self.assertNotContains(page, '>Dimensions<')
 
+    def test_whole_panel(self):
+        # (The sidebar menu names Virtual Device Contexts too: count the page's own mentions.)
+        before = self.client.get(self.plain.get_absolute_url()).content.decode().count('Virtual Device Contexts')
+        self.rule(['panel:dcim.virtualdevicecontext', 'panel:management'], model=Device)
+        page = self.client.get(self.plain.get_absolute_url())
+        self.assertEqual(page.status_code, 200)
+        self.assertLess(page.content.decode().count('Virtual Device Contexts'), before)
+        self.assertNotContains(page, 'device_id={}'.format(self.plain.pk) + '&amp;exclude_columns=device')
+        self.assertNotContains(page, '>Management<')
+        self.assertContains(page, 'Site</th>')
+
     def test_hide_empty(self):
         self.set_pref(self.user, 'hide_empty_detail', 'on')
         page = self.client.get(self.plain.get_absolute_url())
