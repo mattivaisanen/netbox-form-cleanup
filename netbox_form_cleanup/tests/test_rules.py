@@ -206,6 +206,15 @@ class ValueConditionTests(NetBoxData, TestCase):
         values = {'facility': '', 'status': 'planned'}
         self.assertEqual(self.hidden(rule, None, ['facility'], model=Site, value_of=values.get), set())
 
+    def test_numbers_match_however_written(self):
+        """A device's total weight is 0.0 without weights: "0" in the rule matches it."""
+        rule = self.rule(['total_weight'], model=Device, condition=ConditionChoices.IS,
+                         condition_field='total_weight', condition_values=['0'])
+        self.assertEqual(self.hidden(rule, Device.objects.get(pk=self.plain.pk), ['total_weight']), {'total_weight'})
+        rule.condition_values = ['0.00']
+        self.assertEqual(self.hidden(rule, None, ['total_weight'], value_of={'total_weight': 0}.get), {'total_weight'})
+        self.assertEqual(self.hidden(rule, None, ['total_weight'], value_of={'total_weight': 1.5}.get), set())
+
     def test_same_as(self):
         rule = self.rule(['oob_ip'], model=Device, condition=ConditionChoices.SAME, condition_field='primary_ip4')
         Device.objects.filter(pk=self.plain.pk).update(primary_ip4=self.ip1, oob_ip=self.ip1)

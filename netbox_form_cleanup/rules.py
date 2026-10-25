@@ -8,7 +8,7 @@ members.
 """
 from netbox.context import current_request
 
-from .fields import comparable, is_empty, value_labels
+from .fields import comparable, is_empty, value_labels, wanted_label
 from .models import ConditionChoices, FieldRule
 from .settings import PLUGIN, get_setting
 
@@ -134,7 +134,7 @@ def _conditional(rule, targets, value_of, model):
             return targets if _empty(value_of, rule.condition_field) else []
         return [name for name in targets if _empty(value_of, name)]
     if condition in (ConditionChoices.IS, ConditionChoices.IS_NOT):
-        wanted = {value.lower() for value in rule.condition_values}
+        wanted = {value.lower() for value in rule.condition_values} | {wanted_label(v) for v in rule.condition_values}
         found = bool(value_labels(model, rule.condition_field, value_of(rule.condition_field)) & wanted)
         return targets if found == (condition == ConditionChoices.IS) else []
     if condition == ConditionChoices.SAME:

@@ -5,6 +5,8 @@ Names are the model's own field names (as on its edit form and in its
 table), and cf_<name> for custom fields (as NetBox names them on forms and
 tables).
 """
+from decimal import Decimal, InvalidOperation
+
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils.text import capfirst
@@ -176,6 +178,8 @@ def value_labels(model, name, value):
         elif related is not None and str(item).strip().isdigit():
             pks.append(int(str(item).strip()))
             labels.add(str(item).strip())
+        elif isinstance(item, (int, float, Decimal)):
+            labels.add(number_label(item))
         else:
             labels.add(str(item).strip())
     if pks:
@@ -195,3 +199,25 @@ def comparable(value):
     if hasattr(value, '_meta') and hasattr(value, 'pk'):
         return str(value.pk)
     return str(value).strip()
+
+
+def number_label(value):
+    """A number as text without trailing zeros, so 0, 0.0 and 0.00 all read "0"."""
+    try:
+        number = Decimal(str(value).strip())
+    except (InvalidOperation, ValueError):
+        return str(value).strip()
+    if not number.is_finite():
+        return str(value).strip()
+    text = format(number.normalize(), 'f')
+    return '0' if text in ('-0', '') else text
+
+
+def wanted_label(value):
+    """A rule's value as value_labels() writes it: numbers normalised, lower case."""
+    text = value.strip()
+    try:
+        Decimal(text)
+    except (InvalidOperation, ValueError):
+        return text.lower()
+    return number_label(text).lower() if any(ch.isdigit() for ch in text) else text.lower()

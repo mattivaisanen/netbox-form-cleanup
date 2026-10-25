@@ -4,6 +4,8 @@
 
 New:
 
+- Rule values match numbers however they are written, so `0` hides a total
+  weight of 0.0.
 - Rules can hide rows that only exist on object pages, such as a device's
   total weight (the Dimensions panel then disappears) or GPS coordinates.
 - Three more conditions: hide fields *while* or *unless another field has
