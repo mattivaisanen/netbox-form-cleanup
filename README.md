@@ -50,7 +50,7 @@ as they are.
 
 ## Requirements
 
-- NetBox **4.7** or later. Tested with NetBox 4.7.0 and 4.7.3.
+- NetBox **4.7** or later. Tested with NetBox 4.7.3.
 - No other NetBox plugins. Works next to netbox-change-approval (rule
   changes then need approval like any other change).
 
