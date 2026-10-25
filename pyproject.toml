@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-form-cleanup"
+version = "0.1.0"
+description = "Hide unused or empty fields from NetBox forms, object pages and lists."
+requires-python = ">=3.10"
+license = "Apache-2.0"
+readme = "README.md"
+authors = [{ name = "Matti" }]
+# No runtime dependencies beyond NetBox (which brings Django). NetBox
+# versions are enforced at runtime by min_version in
+# netbox_form_cleanup/__init__.py.
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["netbox_form_cleanup*"]
+
+[tool.setuptools.package-data]
+netbox_form_cleanup = [
+    "templates/netbox_form_cleanup/*.html",
+    "templates/netbox_form_cleanup/**/*.html",
+]

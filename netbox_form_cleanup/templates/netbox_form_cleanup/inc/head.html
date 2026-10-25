@@ -1,0 +1,75 @@
+{% load i18n %}
+<style>
+  /* Out of sight until the script below has moved them into "More fields". */
+  [data-form-cleanup-hidden]:not(.form-cleanup-placed) { display: none !important; }
+  .form-cleanup-collapsed > :not(:first-child) { display: none !important; }
+  .form-cleanup-toggle { cursor: pointer; user-select: none; }
+  .form-cleanup-toggle .mdi { transition: transform .15s; display: inline-block; }
+  .form-cleanup-collapsed .form-cleanup-toggle .mdi { transform: rotate(-90deg); }
+</style>
+<script>
+  (function () {
+    var TITLE = '{{ _("More fields")|escapejs }}';
+    var HINT = '{{ _("Fields hidden by field rules. Values here are saved as usual.")|escapejs }}';
+
+    function hasInputs(el) {
+      return !!el.querySelector('input:not([type=hidden]), select, textarea');
+    }
+
+    function makeSection(container) {
+      var section = document.createElement('div');
+      section.className = 'field-group mb-5 form-cleanup-more';
+      section.innerHTML = '<div class="row"><h2 class="col-9 offset-3 form-cleanup-toggle" role="button" tabindex="0"></h2></div>';
+      var heading = section.querySelector('h2');
+      heading.title = HINT;
+      heading.innerHTML = '<i class="mdi mdi-chevron-down" aria-hidden="true"></i> ';
+      heading.appendChild(document.createTextNode(TITLE));
+      var badge = document.createElement('span');
+      badge.className = 'badge text-bg-secondary ms-2 form-cleanup-count';
+      heading.appendChild(badge);
+      var toggle = function () {
+        section.classList.toggle('form-cleanup-collapsed');
+        heading.setAttribute('aria-expanded', section.classList.contains('form-cleanup-collapsed') ? 'false' : 'true');
+      };
+      heading.addEventListener('click', toggle);
+      heading.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); }
+      });
+      // After the last group of fields, so it sits above the form's buttons.
+      var groups = container.querySelectorAll(':scope .field-group:not(.form-cleanup-more)');
+      var last = null;
+      groups.forEach(function (group) { if (!group.closest('.form-cleanup-more')) { last = group; } });
+      if (last && last.parentNode) {
+        last.parentNode.insertBefore(section, last.nextSibling);
+      } else {
+        container.appendChild(section);
+      }
+      section.classList.add('form-cleanup-collapsed');
+      heading.setAttribute('aria-expanded', 'false');
+      return section;
+    }
+
+    function setUp(root) {
+      var fields = (root || document).querySelectorAll('[data-form-cleanup-hidden]:not(.form-cleanup-placed)');
+      fields.forEach(function (field) {
+        var container = field.closest('#form_fields') || field.closest('form');
+        if (!container) { field.classList.add('form-cleanup-placed'); return; }
+        var section = container.querySelector('.form-cleanup-more') || makeSection(container);
+        var group = field.closest('.field-group');
+        section.appendChild(field);
+        field.classList.add('form-cleanup-placed');
+        // A group left with only its heading is not shown.
+        if (group && group !== section && !hasInputs(group)) { group.style.display = 'none'; }
+        // Open by itself when one of its fields has an error.
+        if (field.querySelector('.has-errors, .is-invalid, .text-danger')) {
+          section.classList.remove('form-cleanup-collapsed');
+        }
+        var count = section.querySelectorAll('[data-form-cleanup-hidden]').length;
+        section.querySelector('.form-cleanup-count').textContent = count;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () { setUp(document); });
+    document.addEventListener('htmx:afterSettle', function (event) { setUp(event.target); });
+  })();
+</script>
