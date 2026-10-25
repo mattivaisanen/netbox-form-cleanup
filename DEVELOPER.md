@@ -21,9 +21,16 @@ lists, related managers without objects; `False` and `0` are values).
   `netbox.context.current_request`, which NetBox's middleware sets.
 - `rules_for(model, where)`: those that are on for forms, object pages or
   lists, and are global or for the model.
-- `hidden_fields(rules, names, value_of)`: the names the rules hide.
-  `value_of(name)` gives the current value for *When empty* rules; without
-  it, or with `always_only`, only *Always* rules count.
+- `hidden_fields(rules, names, value_of, model=...)`: the names the rules
+  hide. `value_of(name)` gives the current value for conditional rules;
+  without it, or with `always_only`, only *Always* rules count. Values
+  come from a saved object (`fields.object_value()`: related objects by ID)
+  or a form (`BoundField.value()`: IDs, often as text; a condition field the
+  form lacks is read from `form.instance`). So comparisons go through
+  `fields.value_labels()` (*is / is not one of*: an ID is looked up on the
+  field's related model to add its name, slug and display; all lower case)
+  and `fields.comparable()` (*same as*: related objects reduced to their
+  ID as text, lists sorted). A value that cannot be read hides nothing.
 - `hide_empty(request, 'detail' | 'tables')`: the user's preference, else
   the setting.
 

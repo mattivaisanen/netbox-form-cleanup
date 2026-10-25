@@ -21,7 +21,7 @@ import logging
 from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelFilterSetForm, NetBoxModelForm
 from utilities.templatetags import form_helpers
 
-from ..fields import is_empty
+from ..fields import is_empty, object_value
 from ..rules import FORMS, hidden_fields, rules_for
 
 logger = logging.getLogger('netbox_form_cleanup')
@@ -48,8 +48,15 @@ def _kind(form):
 
 
 def _value(form, name):
-    """The field's value as the form draws it (submitted data, else initial)."""
-    return form[name].value()
+    """
+    The field's value as the form draws it (submitted data, else initial).
+    A field the form does not have (a condition field) is read from the
+    object being edited.
+    """
+    if name in form.fields:
+        return form[name].value()
+    instance = getattr(form, 'instance', None)
+    return object_value(instance, name) if instance is not None else None
 
 
 def compute_hidden(form):
@@ -61,7 +68,9 @@ def compute_hidden(form):
     if not rules:
         return frozenset()
     always_only = kind != 'object'
-    hidden = hidden_fields(rules, form.fields, value_of=lambda name: _value(form, name), always_only=always_only)
+    hidden = hidden_fields(
+        rules, form.fields, value_of=lambda name: _value(form, name), always_only=always_only, model=_model_of(form),
+    )
     out = set()
     for name in hidden:
         if name in NEVER_MOVED or name not in form.fields:

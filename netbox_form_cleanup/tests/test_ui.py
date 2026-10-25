@@ -41,6 +41,14 @@ class FormTests(NetBoxData, TestCase):
             self.assertNotContains(page, MARK.format(name))
         self.assertContains(page, MARK.format('asset_tag'))
 
+    def test_is_not_one_of_on_form(self):
+        self.rule(['cluster'], model=Device, condition=ConditionChoices.IS_NOT,
+                  condition_field='device_type', condition_values=['vm-host'])
+        page = self.client.get(reverse('dcim:device_edit', args=[self.plain.pk]))
+        self.assertContains(page, MARK.format('cluster'))
+        page = self.client.get(reverse('dcim:device_add'))  # no device type yet: not "vm-host" either
+        self.assertContains(page, MARK.format('cluster'))
+
     def test_superuser_sees_everything_by_default(self):
         self.set_pref(self.admin, 'apply_to_me', 'off')
         page = self.client.get(reverse('dcim:device_add'))
@@ -98,6 +106,16 @@ class DetailTests(NetBoxData, TestCase):
         self.assertContains(page, 'Airflow</th>')
         page = self.client.get(self.stacked.get_absolute_url())
         self.assertContains(page, 'Stack 1')
+
+    def test_same_as_primary_ip(self):
+        from ipam.models import IPAddress
+
+        ip = IPAddress.objects.create(address='192.0.2.10/24')
+        Device.objects.filter(pk=self.plain.pk).update(primary_ip4=ip, oob_ip=ip)
+        self.rule(['oob_ip'], model=Device, condition=ConditionChoices.SAME, condition_field='primary_ip4')
+        page = self.client.get(self.plain.get_absolute_url())
+        self.assertContains(page, 'Primary IPv4</th>')
+        self.assertNotContains(page, 'Out-of-band IP</th>')
 
     def test_hide_empty(self):
         self.set_pref(self.user, 'hide_empty_detail', 'on')

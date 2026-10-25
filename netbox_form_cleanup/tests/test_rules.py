@@ -160,3 +160,76 @@ class RuleModelTests(NetBoxData, TestCase):
         self.assertEqual(rule.model, Device)
         self.assertTrue(rule.get_absolute_url().endswith(f'/rules/{rule.pk}/'))
         self.assertIsNone(FieldRule(fields=['x']).model)
+
+
+class ValueConditionTests(NetBoxData, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.make_netbox()
+        from ipam.models import IPAddress
+
+        cls.ip1 = IPAddress.objects.create(address='192.0.2.1/24')
+        cls.ip2 = IPAddress.objects.create(address='192.0.2.2/24')
+
+    def hidden(self, rule, obj, names, model=Device, value_of=None):
+        return rules.hidden_fields([rule], names, value_of or (lambda n: object_value(obj, n)), model=model)
+
+    def test_is_one_of_matches_name_slug_or_id(self):
+        for value in ('Model 1', 'model-1', str(self.device_type.pk), 'MODEL 1'):
+            FieldRule.objects.all().delete()
+            rule = self.rule(['cluster'], model=Device, condition=ConditionChoices.IS,
+                             condition_field='device_type', condition_values=[value])
+            self.assertEqual(self.hidden(rule, self.plain, ['cluster']), {'cluster'}, value)
+
+    def test_is_not_one_of(self):
+        rule = self.rule(['cluster'], model=Device, condition=ConditionChoices.IS_NOT,
+                         condition_field='device_type', condition_values=['vm-type', 'Other'])
+        self.assertEqual(self.hidden(rule, self.plain, ['cluster']), {'cluster'})
+        rule.condition_values = ['model-1']
+        self.assertEqual(self.hidden(rule, self.plain, ['cluster']), set())
+
+    def test_is_one_of_on_form_values(self):
+        """Forms give related objects as IDs (text): they still match by name."""
+        rule = self.rule(['cluster'], model=Device, condition=ConditionChoices.IS,
+                         condition_field='device_type', condition_values=['Model 1'])
+        values = {'device_type': str(self.device_type.pk), 'cluster': ''}
+        self.assertEqual(self.hidden(rule, None, ['cluster'], value_of=values.get), {'cluster'})
+
+    def test_is_one_of_choice_and_boolean(self):
+        rule = self.rule(['serial'], model=Device, condition=ConditionChoices.IS,
+                         condition_field='status', condition_values=['active'])
+        self.assertEqual(self.hidden(rule, self.plain, ['serial']), {'serial'})
+        rule = self.rule(['facility'], model=Site, condition=ConditionChoices.IS_NOT,
+                         condition_field='status', condition_values=['planned'])
+        self.assertEqual(self.hidden(rule, self.site, ['facility'], model=Site), {'facility'})
+        values = {'facility': '', 'status': 'planned'}
+        self.assertEqual(self.hidden(rule, None, ['facility'], model=Site, value_of=values.get), set())
+
+    def test_same_as(self):
+        rule = self.rule(['oob_ip'], model=Device, condition=ConditionChoices.SAME, condition_field='primary_ip4')
+        Device.objects.filter(pk=self.plain.pk).update(primary_ip4=self.ip1, oob_ip=self.ip1)
+        same = Device.objects.get(pk=self.plain.pk)
+        self.assertEqual(self.hidden(rule, same, ['oob_ip']), {'oob_ip'})
+        Device.objects.filter(pk=self.plain.pk).update(oob_ip=self.ip2)
+        other = Device.objects.get(pk=self.plain.pk)
+        self.assertEqual(self.hidden(rule, other, ['oob_ip']), set())
+        # On a form: the same IDs as text.
+        values = {'oob_ip': str(self.ip1.pk), 'primary_ip4': self.ip1.pk}
+        self.assertEqual(self.hidden(rule, None, ['oob_ip'], value_of=values.get), {'oob_ip'})
+
+    def test_validation(self):
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['cluster'], model=Device, condition=ConditionChoices.IS, condition_field='device_type')
+        self.assertIn('condition_values', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['cluster'], model=Device, condition=ConditionChoices.IS_NOT, condition_values=['x'])
+        self.assertIn('condition_field', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['serial'], model=Device, condition_values=['x'])
+        self.assertIn('condition_values', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['oob_ip'], model=Device, condition=ConditionChoices.SAME, condition_field='oob_ip')
+        self.assertIn('condition_field', cm.exception.message_dict)
+        with self.assertRaises(ValidationError) as cm:
+            self.rule(['serial'], model=Device, condition_field='asset_tag')
+        self.assertIn('condition_field', cm.exception.message_dict)

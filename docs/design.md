@@ -22,8 +22,9 @@ rules*.
 | Enabled | Off keeps the rule without applying it. |
 | Object type | One model (e.g. DCIM › Device), or blank for **every** model ("global"). |
 | Fields | One or more field names. Per-model rules pick from that model's fields and custom fields; global rules from every field name seen on any model. |
-| Condition | **Always** or **When empty**. |
-| Condition field | Optional, only with *When empty*: hide all listed fields when *this* field is empty (e.g. hide the wireless channel fields while Wireless role is empty). Blank: each field hides when it is itself empty. |
+| Condition | **Always**, **When empty**, **When condition field is / is not one of the values**, or **When same as condition field** (added 2026-10-25 on Matti's request). |
+| Condition values | For *is / is not one of*: names, slugs or IDs of related objects, choice values, true/false. |
+| Condition field | Required for *is / is not one of* and *same as*. Optional with *When empty*: hide all listed fields when *this* field is empty (e.g. hide the wireless channel fields while Wireless role is empty). Blank: each field hides when it is itself empty. |
 | Forms | Apply on add/edit forms (and, for *Always* rules, bulk edit and list filter forms). Default on. |
 | Detail pages | Apply on object detail pages. Default on. |
 | Tables | Apply to object list columns (*Always* rules only). Default off. |

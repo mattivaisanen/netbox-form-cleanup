@@ -33,7 +33,7 @@ def _detail_state(obj):
 def _hidden(rules, obj, names):
     if not rules:
         return set()
-    return hidden_fields(rules, names, value_of=functools.partial(object_value, obj))
+    return hidden_fields(rules, names, value_of=functools.partial(object_value, obj), model=type(obj))
 
 
 def _attr_keys(name, attr):

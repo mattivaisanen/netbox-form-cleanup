@@ -14,6 +14,7 @@ class FieldRuleSerializer(NetBoxModelSerializer):
     object_type = ContentTypeField(queryset=ObjectType.objects.public(), required=False, allow_null=True)
     fields = serializers.ListField(child=serializers.CharField(max_length=100), allow_empty=False)
     condition = ChoiceField(choices=ConditionChoices, required=False)
+    condition_values = serializers.ListField(child=serializers.CharField(max_length=200), required=False)
     groups = SerializedPKRelatedField(
         queryset=Group.objects.all(), serializer=GroupSerializer, nested=True, required=False, many=True,
     )
@@ -22,7 +23,7 @@ class FieldRuleSerializer(NetBoxModelSerializer):
         model = FieldRule
         fields = (
             'id', 'url', 'display_url', 'display', 'name', 'description', 'enabled', 'object_type', 'fields',
-            'condition', 'condition_field', 'in_forms', 'in_detail', 'in_tables', 'groups', 'comments', 'tags',
-            'custom_fields', 'created', 'last_updated',
+            'condition', 'condition_field', 'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups',
+            'comments', 'tags', 'custom_fields', 'created', 'last_updated',
         )
         brief_fields = ('id', 'url', 'display', 'name', 'description')

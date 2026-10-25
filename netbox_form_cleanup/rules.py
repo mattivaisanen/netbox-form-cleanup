@@ -8,7 +8,7 @@ members.
 """
 from netbox.context import current_request
 
-from .fields import is_empty
+from .fields import comparable, is_empty, value_labels
 from .models import ConditionChoices, FieldRule
 from .settings import PLUGIN, get_setting
 
@@ -101,11 +101,12 @@ def rules_for(model, where, request=None):
     return [rule for rule in rules if rule.object_type_id in (None, object_type_id)]
 
 
-def hidden_fields(rules, names, value_of=None, always_only=False):
+def hidden_fields(rules, names, value_of=None, always_only=False, model=None):
     """
     The field names among `names` that `rules` hide. `value_of(name)` gives a
-    field's current value for "When empty" rules; without it (or with
-    `always_only`) only "Always" rules count.
+    field's current value for conditional rules; without it (or with
+    `always_only`) only "Always" rules count. `model` lets "is one of" match
+    related objects given by ID (on forms) by name or slug.
     """
     names = set(names)
     hidden = set()
@@ -118,12 +119,28 @@ def hidden_fields(rules, names, value_of=None, always_only=False):
             continue
         if always_only or value_of is None:
             continue
-        if rule.condition_field:
-            if _empty(value_of, rule.condition_field):
-                hidden.update(targets)
-        else:
-            hidden.update(name for name in targets if _empty(value_of, name))
+        try:
+            hidden.update(_conditional(rule, targets, value_of, model))
+        except Exception:
+            # A value that cannot be read hides nothing: show the fields.
+            continue
     return hidden
+
+
+def _conditional(rule, targets, value_of, model):
+    condition = rule.condition
+    if condition == ConditionChoices.EMPTY:
+        if rule.condition_field:
+            return targets if _empty(value_of, rule.condition_field) else []
+        return [name for name in targets if _empty(value_of, name)]
+    if condition in (ConditionChoices.IS, ConditionChoices.IS_NOT):
+        wanted = {value.lower() for value in rule.condition_values}
+        found = bool(value_labels(model, rule.condition_field, value_of(rule.condition_field)) & wanted)
+        return targets if found == (condition == ConditionChoices.IS) else []
+    if condition == ConditionChoices.SAME:
+        other = comparable(value_of(rule.condition_field))
+        return [name for name in targets if comparable(value_of(name)) == other]
+    return []
 
 
 def _empty(value_of, name):

@@ -25,6 +25,7 @@ class FieldRulePanel(panels.ObjectAttributesPanel):
     fields = attrs.ArrayAttr('fields', style='font-monospace')
     condition = attrs.ChoiceAttr('condition')
     condition_field = attrs.TextAttr('condition_field', style='font-monospace')
+    condition_values = attrs.ArrayAttr('condition_values')
 
 
 class FieldRuleScopePanel(panels.ObjectAttributesPanel):

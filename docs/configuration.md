@@ -41,8 +41,9 @@ Admins can set defaults for everyone with NetBox's own
 | --- | --- |
 | Object type | One object type, or blank for every type that has the fields. |
 | Fields | The fields to hide, by name as on the object's form (`serial`, `tenant`). Custom fields are `cf_<name>`. The form offers the object type's fields, or every field name of every type when blank. |
-| Condition | *Always*, or *When empty*. |
-| Condition field | *When empty* only: hide all the fields while this one is empty. Blank: each field hides while it is empty itself. |
+| Condition | *Always*; *When empty*; *When condition field is one of the values*; *When condition field is not one of the values*; *When same as condition field*. |
+| Condition field | The field a condition looks at. *When empty*: hide all the fields while this one is empty (blank: each field while it is empty itself). *Is / is not one of*: compared with the values (required). *Same as*: each field hides while it has this field's value (required). |
+| Condition values | *Is / is not one of* only. Related objects match by name, slug, model (device types) or ID; choices by value (`active`); checkboxes by `true` / `false`; anything else by its text. Not case sensitive. A field without a value matches nothing, so *is not one of* hides the fields while the condition field is empty. |
 | Forms | Move the fields into *More fields* on add and edit forms; bulk edit and filter forms with *Always* rules. On by default. |
 | Object pages | Leave the fields out of object pages. On by default. |
 | Object lists | Remove the fields' columns from object lists. *Always* rules only. Off by default. |
@@ -50,12 +51,13 @@ Admins can set defaults for everyone with NetBox's own
 
 CSV import columns: `name`, `description`, `enabled`, `object_type`
 (`app_label.model`, blank for every type), `fields` (comma separated, in
-double quotes when more than one), `condition` (`always` or `empty`),
-`condition_field`, `in_forms`, `in_detail`, `in_tables`, `groups` (group
+double quotes when more than one), `condition` (`always`, `empty`, `is`,
+`is_not` or `same`), `condition_field`, `condition_values` (comma separated,
+like `fields`), `in_forms`, `in_detail`, `in_tables`, `groups` (group
 names), `tags`, `comments`. Columns left out take the defaults above.
 
 REST API: `/api/plugins/form-cleanup/rules/`, with `object_type` as
-`app_label.model` (or `null`) and `fields` as a list of names.
+`app_label.model` (or `null`), and `fields` and `condition_values` as lists.
 
 ## Permissions
 

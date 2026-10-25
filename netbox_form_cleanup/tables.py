@@ -15,6 +15,7 @@ class FieldRuleTable(NetBoxTable):
     fields = columns.ArrayColumn(verbose_name=_('Fields'))
     condition = columns.ChoiceFieldColumn(verbose_name=_('Condition'))
     condition_field = tables.Column(verbose_name=_('Condition field'))
+    condition_values = columns.ArrayColumn(verbose_name=_('Condition values'))
     in_forms = columns.BooleanColumn(verbose_name=_('Forms'))
     in_detail = columns.BooleanColumn(verbose_name=_('Object pages'))
     in_tables = columns.BooleanColumn(verbose_name=_('Object lists'))
@@ -25,8 +26,8 @@ class FieldRuleTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = FieldRule
         fields = (
-            'pk', 'id', 'name', 'enabled', 'object_type', 'fields', 'condition', 'condition_field', 'in_forms',
-            'in_detail', 'in_tables', 'groups', 'description', 'comments', 'tags', 'created', 'last_updated',
+            'pk', 'id', 'name', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
+            'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'description', 'comments', 'tags', 'created', 'last_updated',
         )
         default_columns = (
             'pk', 'name', 'enabled', 'object_type', 'fields', 'condition', 'in_forms', 'in_detail', 'in_tables',

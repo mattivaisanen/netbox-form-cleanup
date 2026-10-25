@@ -14,11 +14,20 @@ as they are.
   object type or every object type that has those fields. Rules are normal
   NetBox objects: change log, tags, custom fields, CSV import, bulk edit,
   REST API and permissions all work as for any other object.
-- **Always, or only while empty.** An *Always* rule hides its fields for
-  good. A *When empty* rule hides each field while it has no value, or, with
-  a *condition field*, hides all its fields while that one field is empty.
-  Example: hide an interface's wireless channel, frequency, width and power
-  while its *Wireless role* is empty, so they only show up on radios.
+- **Always, or on a condition.** An *Always* rule hides its fields for
+  good. Conditional rules look at the object's current values:
+  - *When empty*: each field hides while it has no value, or, with a
+    *condition field*, all the fields hide while that one is empty.
+    Example: hide an interface's wireless channel, frequency, width and
+    power while its *Wireless role* is empty, so they only show on radios.
+  - *When condition field is (not) one of the values*: hide the fields
+    while another field has (or doesn't have) one of the listed values.
+    Related objects match by name, slug or ID. Example: hide a site's
+    facility and time zone unless its status is `active`.
+  - *When same as condition field*: hide each field while it has the same
+    value as the condition field, so it only shows when it adds something.
+    Example: a circuit termination's upstream speed when it equals the
+    port speed.
 - **Forms keep working.** On add and edit forms hidden fields are not
   removed: they move into a collapsed **More fields** section at the bottom
   of the form. Open it to fill one in; its value is saved as usual. The

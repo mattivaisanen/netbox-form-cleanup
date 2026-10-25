@@ -62,7 +62,7 @@ class FieldRuleForm(NetBoxModelForm):
     fieldsets = (
         FieldSet('name', 'description', 'enabled', 'tags', name=_('Field rule')),
         FieldSet('object_type', 'fields', name=_('Fields')),
-        FieldSet('condition', 'condition_field', name=_('Condition')),
+        FieldSet('condition', 'condition_field', 'condition_values', name=_('Condition')),
         FieldSet(
             InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide on')),
             name=_('Scope'),
@@ -74,7 +74,7 @@ class FieldRuleForm(NetBoxModelForm):
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
+            'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
         )
 
     def __init__(self, *args, **kwargs):
@@ -120,7 +120,7 @@ class FieldRuleImportForm(NetBoxModelImportForm):
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
+            'condition_values', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags', 'comments',
         )
 
     def clean(self):

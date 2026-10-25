@@ -87,3 +87,67 @@ def object_value(obj, name):
         # The id, so an unsaved object does not query its relation.
         return getattr(obj, field.attname, None)
     return getattr(obj, name, None)
+
+
+def _related_model(model, name):
+    if model is None or name.startswith(CF_PREFIX):
+        return None
+    try:
+        field = model._meta.get_field(name)
+    except Exception:
+        return None
+    return field.related_model if field.is_relation else None
+
+
+def _labels_of(obj):
+    """What a related object can be named by in a rule: ID, name, slug, model (device types), display."""
+    labels = {str(obj.pk), str(obj)}
+    for attr in ('name', 'slug', 'model'):
+        value = getattr(obj, attr, None)
+        if isinstance(value, str) and value:
+            labels.add(value)
+    return labels
+
+
+def value_labels(model, name, value):
+    """
+    Every text a field's value matches in a rule's "is one of" list, lower
+    case. Related objects (as objects, IDs or lists of either) give their
+    ID, name, slug and display; True/False give "true"/"false"; anything
+    else its text.
+    """
+    if is_empty(value):
+        return set()
+    if hasattr(value, 'all') and callable(value.all):
+        value = list(value.all())
+    items = value if isinstance(value, (list, tuple, set)) else [value]
+    related = _related_model(model, name)
+    labels = set()
+    pks = []
+    for item in items:
+        if hasattr(item, '_meta') and hasattr(item, 'pk'):
+            labels |= _labels_of(item)
+        elif isinstance(item, bool):
+            labels.add('true' if item else 'false')
+        elif related is not None and str(item).strip().isdigit():
+            pks.append(int(str(item).strip()))
+            labels.add(str(item).strip())
+        else:
+            labels.add(str(item).strip())
+    if pks:
+        for obj in related.objects.filter(pk__in=pks):
+            labels |= _labels_of(obj)
+    return {label.lower() for label in labels}
+
+
+def comparable(value):
+    """A value in a form both a saved object and a form give for the same thing (related objects by ID)."""
+    if is_empty(value):
+        return None
+    if hasattr(value, 'all') and callable(value.all):
+        value = list(value.all())
+    if isinstance(value, (list, tuple, set)):
+        return tuple(sorted(str(comparable(item)) for item in value))
+    if hasattr(value, '_meta') and hasattr(value, 'pk'):
+        return str(value.pk)
+    return str(value).strip()
