@@ -10,6 +10,16 @@ New:
   have a value in each field and which rules hide it, then add a rule for
   one field or for every unused field in one click.
 
+Fixed:
+
+- CSV exports of object lists keep columns that a rule removes from the
+  list, as exports are never filtered.
+- Field rules no longer apply to the field rule pages themselves, so a
+  rule for every object type cannot hide parts of the rule form. Rules
+  cannot be limited to the field rule type any more.
+- *Clone* on a field rule keeps its fields, condition, user groups and
+  except user groups.
+
 ## 0.1.0 (2026-10-26)
 
 First release.

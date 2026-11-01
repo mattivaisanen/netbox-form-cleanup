@@ -10,6 +10,9 @@ Wraps NetBoxTable.configure (every core and plugin object list):
   on any row of the current page is hidden for this page. Those columns
   still count as selected (BaseTable._get_columns is wrapped), so saving
   "Configure table" keeps them.
+
+CSV exports (?export=...) are left alone: NetBox exports "All data" from
+the table's columns, so a removed column would go missing from the file.
 """
 import functools
 
@@ -59,6 +62,14 @@ def empty_columns(table):
     return empty
 
 
+def _is_export(request):
+    """Whether the list is being exported to a file rather than drawn."""
+    try:
+        return 'export' in request.GET
+    except Exception:
+        return False
+
+
 def _wrap_configure():
     configure = NetBoxTable.configure
     if getattr(configure, '_form_cleanup', False):
@@ -66,6 +77,8 @@ def _wrap_configure():
 
     @functools.wraps(configure)
     def wrapped(self, request):
+        if _is_export(request):
+            return configure(self, request)
         model = _model_of(self)
         try:
             rules = rules_for(model, TABLES, request)

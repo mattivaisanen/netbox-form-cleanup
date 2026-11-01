@@ -25,7 +25,9 @@ model label for `ObjectsTablePanel`, else the slugified title).
   `apply_to_me` preference is on. The request comes from
   `netbox.context.current_request`, which NetBox's middleware sets.
 - `rules_for(model, where)`: those that are on for forms, object pages or
-  lists, and are global or for the model.
+  lists, and are global or for the model. The plugin's own model gets
+  none (`fields.OWN_APP`), and `fields.rule_object_types()` leaves it out
+  of the object types and global field names a rule can use.
 - `hidden_fields(rules, names, value_of, model=...)`: the names the rules
   hide. `value_of(name)` gives the current value for conditional rules (each
   target's own, or the rule's `condition_field` for all; `rules._tests`
@@ -59,7 +61,7 @@ over cosmetics). Check these on every NetBox upgrade; each has tests.
 | `extras.ui.panels.CustomFieldsPanel.get_context` | `hooks/panels.py` | Drops `cf_<name>` fields and empty ones. |
 | `netbox.ui.panels.Panel.render` | `hooks/panels.py` | Returns nothing for a panel a rule names as `panel:<key>`. |
 | `CommentsPanel.should_render`, `TagsPanel.should_render` | `hooks/panels.py` | Skips the panel when `comments` / `tags` is hidden, or empty and empty fields are hidden. |
-| `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. |
+| `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. Skipped for CSV exports (`?export`), which NetBox draws from the same table. |
 | `netbox.tables.BaseTable._get_columns` | `hooks/tables.py` | Columns hidden for being empty still count as selected, so *Configure table* keeps them. |
 
 The "More Fields" section itself is built in the browser by

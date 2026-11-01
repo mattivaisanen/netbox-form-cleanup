@@ -1,17 +1,17 @@
 from rest_framework import serializers
 
-from core.models import ObjectType
 from netbox.api.fields import ChoiceField, ContentTypeField, SerializedPKRelatedField
 from netbox.api.serializers import NetBoxModelSerializer
 from users.api.serializers import GroupSerializer
 from users.models import Group
 
+from ..fields import rule_object_types
 from ..models import ConditionChoices, FieldRule
 
 
 class FieldRuleSerializer(NetBoxModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='plugins-api:netbox_form_cleanup-api:fieldrule-detail')
-    object_type = ContentTypeField(queryset=ObjectType.objects.public(), required=False, allow_null=True)
+    object_type = ContentTypeField(queryset=rule_object_types(), required=False, allow_null=True)
     fields = serializers.ListField(child=serializers.CharField(max_length=100), allow_empty=False)
     condition = ChoiceField(choices=ConditionChoices, required=False)
     condition_values = serializers.ListField(child=serializers.CharField(max_length=200), required=False)

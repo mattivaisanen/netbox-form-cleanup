@@ -123,10 +123,22 @@ def page_attributes(model):
     return rows + panels
 
 
-def public_models():
+#: This plugin's own app: field rules never apply to the rule pages themselves.
+OWN_APP = 'netbox_form_cleanup'
+
+
+def rule_object_types():
+    """
+    The object types a rule can be limited to: every public type except this
+    plugin's own, so no rule can hide parts of the rule form or rule pages.
+    """
     from core.models import ObjectType
 
-    for object_type in ObjectType.objects.public().order_by('app_label', 'model'):
+    return ObjectType.objects.public().exclude(app_label=OWN_APP)
+
+
+def public_models():
+    for object_type in rule_object_types().order_by('app_label', 'model'):
         if (model := object_type.model_class()) is not None:
             yield model
 

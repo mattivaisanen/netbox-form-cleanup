@@ -128,7 +128,11 @@ class FieldRule(NetBoxModel):
     )
     comments = models.TextField(verbose_name=_('comments'), blank=True)
 
-    clone_fields = ('object_type', 'condition', 'in_forms', 'in_detail', 'in_tables', 'enabled')
+    # Cloning keeps what the rule hides and when, so a similar rule needs only a new name.
+    clone_fields = (
+        'object_type', 'fields', 'condition', 'condition_field', 'condition_values', 'condition_pattern',
+        'in_forms', 'in_detail', 'in_tables', 'groups', 'except_groups', 'enabled',
+    )
 
     class Meta:
         ordering = ('name',)

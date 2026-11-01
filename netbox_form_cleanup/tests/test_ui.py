@@ -175,6 +175,11 @@ class TableTests(NetBoxData, TestCase):
         self.rule(['serial'], model=Device)
         self.assertIn('serial', self.table().columns.names())
 
+    def test_export_keeps_hidden_column(self):
+        self.rule(['serial'], model=Device, in_tables=True)
+        page = self.client.get(reverse('dcim:device_list') + '?export')
+        self.assertIn(b'SER-1', page.content)
+
     def test_empty_columns_hidden_but_still_selected(self):
         self.set_pref(self.user, 'hide_empty_tables', 'on')
         table = self.table()
