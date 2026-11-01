@@ -113,6 +113,16 @@ class MatchingTests(NetBoxData, TestCase):
         self.user.groups.add(team)
         self.assertEqual(rules.active_rules(self.request_for(self.user)), [rule])
 
+    def test_except_groups(self):
+        admins, team = Group.objects.create(name='Admins'), Group.objects.create(name='Team')
+        rule = self.rule(['serial'], model=Device)
+        rule.except_groups.set([admins])
+        self.assertEqual(rules.active_rules(self.request_for(self.user)), [rule])
+        # An exception wins over a membership of the rule's own groups.
+        rule.groups.set([team])
+        self.user.groups.add(team, admins)
+        self.assertEqual(rules.active_rules(self.request_for(self.user)), [])
+
     def test_rules_read_once_per_request(self):
         self.rule(['serial'], model=Device)
         request = self.request_for(self.user)

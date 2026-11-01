@@ -13,6 +13,6 @@ class FormCleanupRootView(APIRootView):
 
 
 class FieldRuleViewSet(NetBoxModelViewSet):
-    queryset = FieldRule.objects.select_related('object_type').prefetch_related('groups', 'tags')
+    queryset = FieldRule.objects.select_related('object_type').prefetch_related('groups', 'except_groups', 'tags')
     serializer_class = serializers.FieldRuleSerializer
     filterset_class = filtersets.FieldRuleFilterSet

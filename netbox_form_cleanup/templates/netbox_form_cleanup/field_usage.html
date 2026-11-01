@@ -1,0 +1,79 @@
+{% extends 'generic/_base.html' %}
+{% load form_helpers %}
+{% load i18n %}
+
+{% block title %}{% trans "Field Usage" %}{% endblock %}
+
+{% block subtitle %}
+  <div class="text-secondary">{% trans "How many objects have a value in each field. Fields nobody fills in are good candidates for a rule." %}</div>
+{% endblock %}
+
+{% block content %}
+  <div class="row mb-3">
+    <div class="col col-md-6">
+      <form method="get" class="card">
+        <div class="card-body">
+          {% render_field form.object_type %}
+        </div>
+        <div class="card-footer text-end">
+          <button type="submit" class="btn btn-primary">{% trans "Show" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if usage is not None %}
+    <div class="card">
+      <h2 class="card-header d-flex justify-content-between align-items-center">
+        <span>{{ object_type }} <span class="text-secondary fs-5 fw-normal">({{ total }} {% trans "objects" %})</span></span>
+        {% if unused_query and perms.netbox_form_cleanup.add_fieldrule %}
+          <a href="{{ add_url }}?{{ unused_query }}" class="btn btn-sm btn-primary">
+            <i class="mdi mdi-eye-off"></i> {% trans "Hide Unused Fields" %}
+          </a>
+        {% endif %}
+      </h2>
+      <table class="table table-hover attr-table mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Field" %}</th>
+            <th>{% trans "Name" %}</th>
+            <th class="text-end">{% trans "Objects With a Value" %}</th>
+            <th>{% trans "Hidden By" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in usage %}
+            <tr>
+              <td>{{ row.label }}</td>
+              <td class="font-monospace">{{ row.name }}</td>
+              <td class="text-end">
+                {% if row.filled is None %}
+                  <span class="text-secondary">&mdash;</span>
+                {% elif row.filled == 0 and total %}
+                  <span class="badge text-bg-yellow">{% trans "Unused" %}</span>
+                {% else %}
+                  {{ row.filled }}{% if row.percent is not None %} <span class="text-secondary">({{ row.percent }}%)</span>{% endif %}
+                {% endif %}
+              </td>
+              <td>
+                {% for rule in row.rules %}
+                  <a href="{{ rule.get_absolute_url }}">{{ rule }}</a>{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                  <span class="text-secondary">&mdash;</span>
+                {% endfor %}
+              </td>
+              <td class="text-end">
+                {% if perms.netbox_form_cleanup.add_fieldrule %}
+                  <a href="{{ add_url }}?{{ row.add_query }}" class="btn btn-sm btn-outline-primary" title="{% trans "Add a rule for this field" %}">
+                    <i class="mdi mdi-plus-thick"></i> {% trans "Rule" %}
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -92,7 +92,7 @@ class FieldRule(NetBoxModel):
     in_forms = models.BooleanField(
         verbose_name=_('forms'),
         default=True,
-        help_text=_('Move the fields into "More fields" on add and edit forms (bulk edit and filter forms: '
+        help_text=_('Move the fields into "More Fields" on add and edit forms (bulk edit and filter forms: '
                     '"Always" rules only).'),
     )
     in_detail = models.BooleanField(
@@ -111,6 +111,13 @@ class FieldRule(NetBoxModel):
         blank=True,
         verbose_name=_('user groups'),
         help_text=_('Apply only to members of these groups. Leave blank for everyone.'),
+    )
+    except_groups = models.ManyToManyField(
+        to='users.Group',
+        related_name='+',
+        blank=True,
+        verbose_name=_('except user groups'),
+        help_text=_('Never apply to members of these groups, e.g. the admins who need every field.'),
     )
     condition_pattern = models.CharField(
         verbose_name=_('condition pattern'),

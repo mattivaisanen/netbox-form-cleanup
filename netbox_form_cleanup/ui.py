@@ -16,7 +16,7 @@ class ObjectTypeAttr(attrs.ObjectAttribute):
 
 
 class FieldRulePanel(panels.ObjectAttributesPanel):
-    title = _('Field rule')
+    title = _('Field Rule')
 
     name = attrs.TextAttr('name')
     description = attrs.TextAttr('description')
@@ -36,3 +36,4 @@ class FieldRuleScopePanel(panels.ObjectAttributesPanel):
     in_detail = attrs.BooleanAttr('in_detail', label=_('Object pages'))
     in_tables = attrs.BooleanAttr('in_tables', label=_('Object lists'))
     groups = attrs.RelatedObjectListAttr('groups', label=_('User groups'), linkify=True)
+    except_groups = attrs.RelatedObjectListAttr('except_groups', label=_('Except user groups'), linkify=True)
