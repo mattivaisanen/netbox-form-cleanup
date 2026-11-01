@@ -20,7 +20,7 @@ model label for `ObjectsTablePanel`, else the slugified title).
 `rules.py` decides what applies to the current request:
 
 - `active_rules(request)`: enabled rules whose user groups (if any) include
-  the user, read with one query once per request and kept on the request.
+  the user and whose except user groups do not (`applies_to()`), read with one query once per request and kept on the request.
   Superusers get none unless `exempt_superusers` is off or their
   `apply_to_me` preference is on. The request comes from
   `netbox.context.current_request`, which NetBox's middleware sets.
@@ -64,7 +64,7 @@ over cosmetics). Check these on every NetBox upgrade; each has tests.
 | `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. Skipped for CSV exports (`?export`), which NetBox draws from the same table. |
 | `netbox.tables.BaseTable._get_columns` | `hooks/tables.py` | Columns hidden for being empty still count as selected, so *Configure table* keeps them. |
 
-The "More fields" section itself is built in the browser by
+The "More Fields" section itself is built in the browser by
 `templates/netbox_form_cleanup/inc/head.html`, added to every page's
 `<head>` by a template extension (`template_content.py`). Its CSS hides
 marked fields until the script has moved them, so nothing jumps. The
@@ -81,6 +81,17 @@ class chain has run, and cached on the form. Add and edit forms
 current value (submitted data, else initial). Bulk edit and filter forms
 (`NetBoxModelBulkEditForm`, `NetBoxModelFilterSetForm`) describe no single
 object, so only *Always* rules count. Other forms are never touched.
+
+## Field Usage page
+
+`views.FieldUsageView` (needs `view_fieldrule`) counts, per field of the
+picked type (`usage.field_usage()`), the objects the user may view that
+have a value: one `count()` per field, with "empty" matching
+`fields.is_empty()` (NULL, blank text, empty arrays or JSON, no related
+objects; custom fields by their `custom_field_data` key). Page-only rows
+and panels have no stored value and show no count. The *Rule* buttons link
+to the add form with `object_type`, `fields` and `name` in the query
+string, which NetBox's edit view uses as initial data.
 
 ## Not covered (and why)
 
@@ -100,7 +111,7 @@ python manage.py test netbox_form_cleanup
 
 `test_rules.py` (validation, matching, groups, superusers, preferences),
 `test_ui.py` (forms, object pages, lists) and `test_views.py` (rule pages,
-CSV import, REST API). With netbox-change-approval installed the tests
+Field Usage, CSV import, REST API). With netbox-change-approval installed the tests
 write as an approved change would.
 
 CI (`.github/workflows/test.yml`) runs on pull requests only, two jobs:

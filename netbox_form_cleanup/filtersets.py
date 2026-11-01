@@ -28,6 +28,9 @@ class FieldRuleFilterSet(NetBoxModelFilterSet):
     group = django_filters.ModelMultipleChoiceFilter(
         field_name='groups__name', queryset=Group.objects.all(), to_field_name='name', label=_('User group (name)'),
     )
+    except_group_id = django_filters.ModelMultipleChoiceFilter(
+        field_name='except_groups', queryset=Group.objects.all(), label=_('Except user group (ID)'),
+    )
 
     class Meta:
         model = FieldRule

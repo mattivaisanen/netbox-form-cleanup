@@ -16,7 +16,9 @@ from utilities.forms.widgets import BulkEditNullBooleanSelect, HTMXSelect
 from .fields import field_choices, global_field_choices, rule_object_types
 from .models import ConditionChoices, FieldRule
 
-__all__ = ('FieldRuleBulkEditForm', 'FieldRuleFilterForm', 'FieldRuleForm', 'FieldRuleImportForm')
+__all__ = (
+    'FieldRuleBulkEditForm', 'FieldRuleFilterForm', 'FieldRuleForm', 'FieldRuleImportForm', 'FieldUsageForm',
+)
 
 
 def _object_types():
@@ -57,27 +59,33 @@ class FieldRuleForm(NetBoxModelForm):
         required=False,
         help_text=FieldRule._meta.get_field('groups').help_text,
     )
+    except_groups = DynamicModelMultipleChoiceField(
+        label=_('Except user groups'),
+        queryset=Group.objects.all(),
+        required=False,
+        help_text=FieldRule._meta.get_field('except_groups').help_text,
+    )
     comments = CommentField()
 
     fieldsets = (
-        FieldSet('name', 'description', 'enabled', 'tags', name=_('Field rule')),
+        FieldSet('name', 'description', 'enabled', 'tags', name=_('Field Rule')),
         FieldSet('object_type', 'fields', name=_('Fields')),
         FieldSet(
             'condition', 'condition_field', 'condition_values', 'condition_pattern', name=_('Condition'),
         ),
         FieldSet(
-            InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide on')),
+            InlineFields('in_forms', 'in_detail', 'in_tables', label=_('Hide On')),
             name=_('Scope'),
         ),
-        FieldSet('groups', name=_('Users')),
+        FieldSet('groups', 'except_groups', name=_('User Groups')),
     )
 
     class Meta:
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags',
-            'comments',
+            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups',
+            'except_groups', 'tags', 'comments',
         )
 
     #: Per condition: (label, help text) of the other field, values and pattern; None leaves the input out.
@@ -171,6 +179,13 @@ class FieldRuleImportForm(NetBoxModelImportForm):
         to_field_name='name',
         help_text=_('Group names separated by commas, in double quotes.'),
     )
+    except_groups = CSVModelMultipleChoiceField(
+        label=_('Except user groups'),
+        queryset=Group.objects.all(),
+        required=False,
+        to_field_name='name',
+        help_text=_('Group names separated by commas, in double quotes.'),
+    )
 
     # Left out of the CSV: the model's default (on, on, off, on), not off.
     enabled = forms.NullBooleanField(label=_('Enabled'), required=False)
@@ -182,8 +197,8 @@ class FieldRuleImportForm(NetBoxModelImportForm):
         model = FieldRule
         fields = (
             'name', 'description', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'tags',
-            'comments',
+            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups',
+            'except_groups', 'tags', 'comments',
         )
 
     def clean(self):
@@ -204,15 +219,18 @@ class FieldRuleBulkEditForm(NetBoxModelBulkEditForm):
     in_detail = forms.NullBooleanField(label=_('Object pages'), required=False, widget=BulkEditNullBooleanSelect())
     in_tables = forms.NullBooleanField(label=_('Object lists'), required=False, widget=BulkEditNullBooleanSelect())
     groups = DynamicModelMultipleChoiceField(label=_('User groups'), queryset=Group.objects.all(), required=False)
+    except_groups = DynamicModelMultipleChoiceField(
+        label=_('Except user groups'), queryset=Group.objects.all(), required=False,
+    )
     description = forms.CharField(label=_('Description'), max_length=200, required=False)
     comments = CommentField()
 
     fieldsets = (
-        FieldSet('enabled', 'description', name=_('Field rule')),
+        FieldSet('enabled', 'description', name=_('Field Rule')),
         FieldSet('in_forms', 'in_detail', 'in_tables', name=_('Scope')),
-        FieldSet('groups', name=_('Users')),
+        FieldSet('groups', 'except_groups', name=_('User Groups')),
     )
-    nullable_fields = ('description', 'groups', 'comments')
+    nullable_fields = ('description', 'groups', 'except_groups', 'comments')
 
 
 class FieldRuleFilterForm(NetBoxModelFilterSetForm):
@@ -221,7 +239,7 @@ class FieldRuleFilterForm(NetBoxModelFilterSetForm):
         FieldSet('q', 'filter_id', 'tag'),
         FieldSet('enabled', 'object_type_id', 'field', 'condition', name=_('Rule')),
         FieldSet('in_forms', 'in_detail', 'in_tables', name=_('Scope')),
-        FieldSet('group_id', name=_('Users')),
+        FieldSet('group_id', 'except_group_id', name=_('User Groups')),
     )
     enabled = forms.NullBooleanField(
         label=_('Enabled'), required=False, widget=forms.Select(choices=BOOLEAN_WITH_BLANK_CHOICES),
@@ -241,4 +259,16 @@ class FieldRuleFilterForm(NetBoxModelFilterSetForm):
         label=_('Object lists'), required=False, widget=forms.Select(choices=BOOLEAN_WITH_BLANK_CHOICES),
     )
     group_id = DynamicModelMultipleChoiceField(label=_('User group'), queryset=Group.objects.all(), required=False)
+    except_group_id = DynamicModelMultipleChoiceField(
+        label=_('Except user group'), queryset=Group.objects.all(), required=False,
+    )
     tag = TagFilterField(model)
+
+
+class FieldUsageForm(forms.Form):
+    """The object type picker of the Field Usage page."""
+    object_type = ContentTypeChoiceField(
+        label=_('Object type'),
+        queryset=_object_types(),
+        required=False,
+    )

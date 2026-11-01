@@ -4,7 +4,7 @@ Which fields to hide for the current request.
 Rules are read once per request (memoised on the request object) and only
 when a form, object page or list is drawn. Superusers are exempt unless they
 switch on "Apply field rules to me"; rules with user groups apply only to
-members.
+members, and never to members of their except user groups.
 """
 import re
 
@@ -76,16 +76,26 @@ def active_rules(request=None):
         if user is not None and user.is_authenticated:
             group_ids = set(user.groups.values_list('pk', flat=True))
         rules = []
-        for rule in FieldRule.objects.filter(enabled=True).prefetch_related('groups'):
-            rule_groups = {group.pk for group in rule.groups.all()}
-            if rule_groups and not rule_groups & group_ids:
-                continue
-            rules.append(rule)
+        for rule in FieldRule.objects.filter(enabled=True).prefetch_related('groups', 'except_groups'):
+            if applies_to(rule, group_ids):
+                rules.append(rule)
     try:
         setattr(request, _CACHE_ATTR, rules)
     except AttributeError:
         pass
     return rules
+
+
+def applies_to(rule, group_ids):
+    """
+    Whether `rule` applies to a user in `group_ids`: a member of one of its
+    user groups (or any user when it has none), and of none of its except
+    user groups. An exception wins over a membership.
+    """
+    if {group.pk for group in rule.except_groups.all()} & group_ids:
+        return False
+    rule_groups = {group.pk for group in rule.groups.all()}
+    return not rule_groups or bool(rule_groups & group_ids)
 
 
 def rules_for(model, where, request=None):
@@ -103,6 +113,17 @@ def rules_for(model, where, request=None):
     if any(rule.object_type_id for rule in rules):
         object_type_id = ObjectType.objects.get_for_model(model).pk
     return [rule for rule in rules if rule.object_type_id in (None, object_type_id)]
+
+
+def rules_for_type(model):
+    """Every enabled rule for `model` or every type, whoever it applies to (for the Field Usage page)."""
+    from core.models import ObjectType
+    from django.db.models import Q
+
+    object_type = ObjectType.objects.get_for_model(model)
+    return list(
+        FieldRule.objects.filter(Q(object_type__isnull=True) | Q(object_type=object_type), enabled=True)
+    )
 
 
 def hidden_fields(rules, names, value_of=None, always_only=False, model=None):

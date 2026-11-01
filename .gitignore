@@ -12,3 +12,4 @@ dump.rdb
 # Claude Code session files
 .claude/
 CLAUDE.local.md
+CLAUDE.md

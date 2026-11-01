@@ -5,7 +5,7 @@ Plan agreed with Matti on 2026-10-25. Kept up to date as the plugin changes.
 ## Goal
 
 Let NetBox admins remove clutter from the web UI: fields nobody in their
-organisation uses, or fields that only matter in some situations (an
+organization uses, or fields that only matter in some situations (an
 interface's wireless channel only matters when the interface has a wireless
 role). Nothing is ever deleted or blocked: hiding is a display choice, the
 REST API and the data are untouched.
@@ -13,8 +13,8 @@ REST API and the data are untouched.
 ## Field rules (UI-managed)
 
 A **field rule** is a NetBox object (NetBoxModel: change log, tags, custom
-fields, REST API, permissions, bulk import/edit), under *Form Cleanup → Field
-rules*.
+fields, REST API, permissions, bulk import/edit), under *Plugins → Field
+Rules*.
 
 | Field | Meaning |
 | --- | --- |
@@ -30,17 +30,18 @@ rules*.
 | Detail pages | Apply on object detail pages. Default on. |
 | Tables | Apply to object list columns (*Always* rules only). Default off. |
 | User groups | Apply only to members of these groups. Blank: everyone. |
+| Except user groups | Never apply to members of these groups (wins over User groups). |
 
 ## Where hiding happens
 
 - **Add/edit forms** (any `NetBoxModelForm`, core and plugin): hidden fields
-  move into a collapsed **More fields** section at the bottom of the form.
+  move into a collapsed **More Fields** section at the bottom of the form.
   Their values are still submitted, so nothing is lost and a field that is
   usually empty can still be filled in. The section opens by itself when one
   of its fields has an error. A required field that is empty is never hidden.
   *When empty* is judged from the form's current value, so after the user
   fills a field it stays visible on the next edit.
-- **Bulk edit and filter forms**: *Always* rules move fields into More fields
+- **Bulk edit and filter forms**: *Always* rules move fields into More Fields
   the same way.
 - **Detail pages** (NetBox 4.7 panel layouts: every core model and plugins
   that use `ObjectAttributesPanel`): hidden attributes are dropped from
@@ -49,6 +50,13 @@ rules*.
   touched (documented limitation).
 - **Tables**: hidden columns are removed from the table and from *Configure
   table*.
+
+## Field Usage page
+
+*Plugins → Field Usage*: pick an object type, see per field how many
+objects (that the user may view) have a value and which rules hide it.
+Buttons open the rule form filled in for one field, or for every field no
+object uses. Added 2026-11-01.
 
 ## Hide empty fields (setting + user preference)
 
@@ -66,7 +74,8 @@ Off).
 - **Superusers** see every field by default (`exempt_superusers: True`). A
   superuser can switch on *Apply field rules to me* in Preferences to preview
   what everyone else sees.
-- Rules with user groups only apply to members of those groups.
+- Rules with user groups only apply to members of those groups; except
+  user groups take members out again.
 
 ## Not in scope
 
@@ -81,12 +90,12 @@ startup (listed in DEVELOPER.md, each with a test):
 
 - The `render_field` template tag (every form field NetBox draws, whether
   the form uses fieldsets or a hand-written template like the device form):
-  marks hidden fields; a small script moves them into *More fields*.
+  marks hidden fields; a small script moves them into *More Fields*.
 - `ObjectAttributesPanel.get_context` / `should_render` and
   `CustomFieldsPanel.get_context`: filter attributes.
 - `NetBoxTable.configure`: exclude hidden columns, hide empty ones.
 - A `head()` template extension adds the script and style that build the
-  collapsed More fields section.
+  collapsed More Fields section.
 - Rules are read once per request (current request from
   `netbox.context.current_request`).
 
