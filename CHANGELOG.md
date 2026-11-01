@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Fixed:
+
+- CSV exports of object lists keep columns that a rule removes from the
+  list, as exports are never filtered.
+- Field rules no longer apply to the field rule pages themselves, so a
+  rule for every object type cannot hide parts of the rule form. Rules
+  cannot be limited to the field rule type any more.
+- *Clone* on a field rule keeps its fields, condition and user groups.
+
 New:
 
 - Rules can hide whole panels of object pages, such as a device's

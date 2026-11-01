@@ -13,14 +13,14 @@ from utilities.forms.rendering import FieldSet, InlineFields
 from utilities.forms.utils import get_field_value
 from utilities.forms.widgets import BulkEditNullBooleanSelect, HTMXSelect
 
-from .fields import field_choices, global_field_choices
+from .fields import field_choices, global_field_choices, rule_object_types
 from .models import ConditionChoices, FieldRule
 
 __all__ = ('FieldRuleBulkEditForm', 'FieldRuleFilterForm', 'FieldRuleForm', 'FieldRuleImportForm')
 
 
 def _object_types():
-    return ObjectType.objects.public()
+    return rule_object_types()
 
 
 def _choices_for(object_type):
@@ -118,7 +118,9 @@ class FieldRuleForm(NetBoxModelForm):
         choices = _choices_for(object_type)
         # Keep saved names a model no longer has, so editing does not drop them silently.
         known = {name for name, _label in choices}
-        saved = list(self.initial.get('fields') or []) if not self.is_bound else []
+        saved = (self.initial.get('fields') or []) if not self.is_bound else []
+        if isinstance(saved, str):
+            saved = [saved]  # One field given in the URL (a cloned rule).
         choices += [(name, name) for name in saved if name not in known]
         self.fields['fields'].choices = choices
         self.fields['condition_field'].choices = [('', '---------'), *choices]

@@ -10,7 +10,7 @@ import re
 
 from netbox.context import current_request
 
-from .fields import comparable, is_empty, value_labels, wanted_label
+from .fields import OWN_APP, comparable, is_empty, value_labels, wanted_label
 from .models import ConditionChoices, FieldRule
 from .settings import PLUGIN, get_setting
 
@@ -90,7 +90,9 @@ def active_rules(request=None):
 
 def rules_for(model, where, request=None):
     """Active rules for `model` (and global ones) that apply in `where` (FORMS, DETAIL or TABLES)."""
-    if model is None:
+    if model is None or model._meta.app_label == OWN_APP:
+        # The rule pages always show every field, so a rule cannot hide
+        # parts of itself (or of other rules) from the people editing it.
         return []
     from core.models import ObjectType
 
