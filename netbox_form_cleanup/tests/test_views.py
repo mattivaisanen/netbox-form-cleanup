@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from core.models import ObjectType
 from dcim.models import Device
+from users.models import Group
 from utilities.querydict import prepare_cloned_fields
 
 from ..models import FieldRule
@@ -42,6 +43,12 @@ class RulePageTests(NetBoxData, TestCase):
     def test_clone_keeps_fields(self):
         page = self.client.get(reverse(URL + 'fieldrule_add') + '?' + prepare_cloned_fields(self.vc_rule).urlencode())
         self.assertRegex(page.content.decode(), r'value="vc_position"\s+selected')
+
+    def test_clone_keeps_except_groups(self):
+        group = Group.objects.create(name='Clone exception')
+        self.vc_rule.except_groups.set([group])
+        cloned = prepare_cloned_fields(self.vc_rule)
+        self.assertEqual(cloned.getlist('except_groups'), [str(group.pk)])
 
     def test_form_offers_the_types_fields(self):
         object_type = ObjectType.objects.get_for_model(Device)

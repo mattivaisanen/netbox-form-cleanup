@@ -131,7 +131,7 @@ class FieldRule(NetBoxModel):
     # Cloning keeps what the rule hides and when, so a similar rule needs only a new name.
     clone_fields = (
         'object_type', 'fields', 'condition', 'condition_field', 'condition_values', 'condition_pattern',
-        'in_forms', 'in_detail', 'in_tables', 'groups', 'enabled',
+        'in_forms', 'in_detail', 'in_tables', 'groups', 'except_groups', 'enabled',
     )
 
     class Meta:
