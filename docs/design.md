@@ -30,6 +30,7 @@ Rules*.
 | Detail pages | Apply on object detail pages. Default on. |
 | Tables | Apply to object list columns (*Always* rules only). Default off. |
 | User groups | Apply only to members of these groups. Blank: everyone. |
+| Except user groups | Never apply to members of these groups (wins over User groups). |
 
 ## Where hiding happens
 
@@ -50,6 +51,13 @@ Rules*.
 - **Tables**: hidden columns are removed from the table and from *Configure
   table*.
 
+## Field Usage page
+
+*Plugins → Field Usage*: pick an object type, see per field how many
+objects (that the user may view) have a value and which rules hide it.
+Buttons open the rule form filled in for one field, or for every field no
+object uses. Added 2026-11-01.
+
 ## Hide empty fields (setting + user preference)
 
 - **Detail pages:** rows with no value (and empty custom fields) are left out.
@@ -66,7 +74,8 @@ Off).
 - **Superusers** see every field by default (`exempt_superusers: True`). A
   superuser can switch on *Apply field rules to me* in Preferences to preview
   what everyone else sees.
-- Rules with user groups only apply to members of those groups.
+- Rules with user groups only apply to members of those groups; except
+  user groups take members out again.
 
 ## Not in scope
 

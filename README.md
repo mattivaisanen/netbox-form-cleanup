@@ -50,7 +50,13 @@ as they are.
   the table configuration keeps them.
 - **Superusers see everything** unless they switch on *Apply field rules to
   me* in their preferences, which shows them what everyone else sees.
-- **Per group.** A rule can be limited to members of some user groups.
+- **Per group.** A rule can be limited to members of some user groups,
+  and can leave out members of others (*Except user groups*), for example
+  hide a field for everyone except the team that maintains it.
+- **Field Usage.** *Plugins → Field Usage* shows, for one object type, how
+  many objects have a value in each field and which rules already hide it.
+  Each field has a button that opens a new rule for it, and *Hide Unused
+  Fields* opens one rule with every field no object uses.
 
 ## What it does not do
 

@@ -49,13 +49,14 @@ Admins can set defaults for everyone with NetBox's own
 | Object pages | Leave the fields out of object pages. On by default. |
 | Object lists | Remove the fields' columns from object lists. *Always* rules only. Off by default. |
 | User groups | Apply only to members of these groups. Blank: everyone. |
+| Except user groups | Never apply to members of these groups, even if they are in *User groups* too. |
 
 CSV import columns: `name`, `description`, `enabled`, `object_type`
 (`app_label.model`, blank for every type), `fields` (comma separated, in
 double quotes when more than one), `condition` (`always`, `empty`, `is`,
 `is_not`, `regex` or `same`), `condition_field`, `condition_values` (comma
-separated, like `fields`), `condition_pattern`, `in_forms`, `in_detail`, `in_tables`, `groups` (group
-names), `tags`, `comments`. Columns left out take the defaults above.
+separated, like `fields`), `condition_pattern`, `in_forms`, `in_detail`, `in_tables`, `groups` and
+`except_groups` (group names), `tags`, `comments`. Columns left out take the defaults above.
 
 REST API: `/api/plugins/form-cleanup/rules/`, with `object_type` as
 `app_label.model` (or `null`), and `fields` and `condition_values` as lists.
@@ -64,7 +65,7 @@ REST API: `/api/plugins/form-cleanup/rules/`, with `object_type` as
 
 | Permission | Allows |
 | --- | --- |
-| `netbox_form_cleanup.view_fieldrule` | Seeing rules |
+| `netbox_form_cleanup.view_fieldrule` | Seeing rules and the *Field Usage* page (which counts only objects the user may view) |
 | `netbox_form_cleanup.add_fieldrule`, `change_fieldrule`, `delete_fieldrule` | Managing rules |
 
 Rules apply to everyone who opens a form, object page or list, whatever

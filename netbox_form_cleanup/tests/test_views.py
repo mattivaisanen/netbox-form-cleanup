@@ -84,6 +84,24 @@ class RulePageTests(NetBoxData, TestCase):
         self.assertTrue(imported.in_tables)
         self.assertIsNone(FieldRule.objects.get(name='Everywhere').object_type)
 
+    def test_field_usage(self):
+        object_type = ObjectType.objects.get_for_model(Device)
+        url = reverse(URL + 'field_usage')
+        self.assertEqual(self.client.get(url).status_code, 200)
+        page = self.client.get(url, {'object_type': object_type.pk})
+        rows = {row['name']: row for row in page.context['usage']}
+        self.assertEqual(page.context['total'], 2)
+        self.assertEqual(rows['serial']['filled'], 1)  # One device of two has a serial.
+        self.assertEqual(rows['asset_tag']['filled'], 0)
+        self.assertEqual(rows['virtual_chassis']['filled'], 1)
+        self.assertIsNone(rows['total_weight']['filled'])  # A page-only row: nothing stored to count.
+        self.assertEqual(rows['vc_position']['rules'], [self.vc_rule])
+        # "Hide Unused Fields" opens the rule form with the unused fields picked.
+        self.assertIn('fields=asset_tag', page.context['unused_query'])
+        self.assertNotIn('fields=serial', page.context['unused_query'])
+        form = self.client.get(reverse(URL + 'fieldrule_add') + '?' + rows['serial']['add_query'])
+        self.assertRegex(form.content.decode(), r'value="serial"\s+selected')
+
 
 @override_settings(LOGIN_REQUIRED=True)
 class ApiTests(NetBoxData, TestCase):

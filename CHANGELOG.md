@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+New:
+
+- *Except user groups* on field rules: the rule never applies to members
+  of these groups, even when they are in the rule's own user groups.
+- *Plugins → Field Usage*: pick an object type to see how many objects
+  have a value in each field and which rules hide it, then add a rule for
+  one field or for every unused field in one click.
+
 ## 0.1.0 (2026-10-26)
 
 First release.

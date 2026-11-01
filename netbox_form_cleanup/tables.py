@@ -21,6 +21,7 @@ class FieldRuleTable(NetBoxTable):
     in_detail = columns.BooleanColumn(verbose_name=_('Object Pages'))
     in_tables = columns.BooleanColumn(verbose_name=_('Object Lists'))
     groups = columns.ManyToManyColumn(verbose_name=_('User Groups'), linkify_item=True)
+    except_groups = columns.ManyToManyColumn(verbose_name=_('Except User Groups'), linkify_item=True)
     comments = columns.MarkdownColumn(verbose_name=_('Comments'))
     tags = columns.TagColumn(url_name='plugins:netbox_form_cleanup:fieldrule_list')
 
@@ -28,7 +29,8 @@ class FieldRuleTable(NetBoxTable):
         model = FieldRule
         fields = (
             'pk', 'id', 'name', 'enabled', 'object_type', 'fields', 'condition', 'condition_field',
-            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'description',
+            'condition_values', 'condition_pattern', 'in_forms', 'in_detail', 'in_tables', 'groups', 'except_groups',
+            'description',
             'comments', 'tags', 'created', 'last_updated',
         )
         default_columns = (

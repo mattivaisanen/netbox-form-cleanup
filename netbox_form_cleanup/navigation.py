@@ -23,4 +23,9 @@ menu_items = (
             ),
         ),
     ),
+    PluginMenuItem(
+        link='plugins:netbox_form_cleanup:field_usage',
+        link_text=_('Field Usage'),
+        permissions=['netbox_form_cleanup.view_fieldrule'],
+    ),
 )

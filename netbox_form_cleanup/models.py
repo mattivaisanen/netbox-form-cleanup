@@ -112,6 +112,13 @@ class FieldRule(NetBoxModel):
         verbose_name=_('user groups'),
         help_text=_('Apply only to members of these groups. Leave blank for everyone.'),
     )
+    except_groups = models.ManyToManyField(
+        to='users.Group',
+        related_name='+',
+        blank=True,
+        verbose_name=_('except user groups'),
+        help_text=_('Never apply to members of these groups, e.g. the admins who need every field.'),
+    )
     condition_pattern = models.CharField(
         verbose_name=_('condition pattern'),
         max_length=500,
