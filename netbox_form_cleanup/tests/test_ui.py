@@ -1,7 +1,9 @@
 """What users see: forms, object pages and lists."""
+from django.template import Context, Template
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from core.models import ObjectType
 from dcim.forms import DeviceBulkEditForm, DeviceFilterForm, DeviceForm, SiteForm
 from dcim.models import Device, Site
 from dcim.tables import DeviceTable
@@ -148,6 +150,47 @@ class DetailTests(NetBoxData, TestCase):
         page = self.client.get(self.site.get_absolute_url())
         self.assertEqual(page.status_code, 200)
         self.assertNotContains(page, '<h2 class="card-header">Comments')
+
+    def render_included(self, obj):
+        """NetBox's shared panels as a hand-written (plugin) object page includes them."""
+        from netbox.context import current_request
+
+        token = current_request.set(self.request_for(self.user))
+        try:
+            return Template(
+                "{% include 'inc/panels/tags.html' %}{% include 'inc/panels/comments.html' %}"
+                "{% include 'inc/panels/custom_fields.html' %}"
+            ).render(Context({'object': obj}))
+        finally:
+            current_request.reset(token)
+
+    def test_included_panels(self):
+        from extras.models import CustomField, Tag
+
+        field = CustomField.objects.create(name='rack_note', type='text')
+        field.object_types.set([ObjectType.objects.get_for_model(Device)])
+        Device.objects.filter(pk=self.stacked.pk).update(
+            comments='Stacked', custom_field_data={'rack_note': 'Note 1'},
+        )
+        self.stacked.refresh_from_db()
+        self.stacked.tags.add(Tag.objects.create(name='Core', slug='core'))
+        self.rule(['tags'], model=Device, condition=ConditionChoices.EMPTY, in_forms=False)
+        self.set_pref(self.user, 'hide_empty_detail', 'on')
+
+        html = self.render_included(self.plain)  # No tags, comments or custom field values.
+        self.assertNotIn('>Tags<', html)
+        self.assertNotIn('>Comments<', html)
+        self.assertNotIn('>Custom Fields<', html)
+        html = self.render_included(self.stacked)
+        self.assertIn('Core', html)
+        self.assertIn('Stacked', html)
+        self.assertIn('Note 1', html)
+
+        self.rule(['cf_rack_note', 'comments'], model=Device, in_forms=False)
+        html = self.render_included(self.stacked)
+        self.assertNotIn('Note 1', html)
+        self.assertNotIn('>Comments<', html)
+        self.assertIn('Core', html)
 
 
 @override_settings(LOGIN_REQUIRED=True, EXEMPT_VIEW_PERMISSIONS=['*'])

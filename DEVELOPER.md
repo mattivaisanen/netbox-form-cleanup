@@ -58,7 +58,8 @@ over cosmetics). Check these on every NetBox upgrade; each has tests.
 | --- | --- | --- |
 | `utilities.templatetags.form_helpers.render_field` (template tag) | `hooks/forms.py` | Every form field NetBox draws goes through it, in fieldset-based forms and hand-written form templates (the device form is one) alike. The replacement draws the same template and wraps a hidden field in `<div data-form-cleanup-hidden="name">`. It is registered under the same name in NetBox's tag library during `ready()`, before any template is compiled. |
 | `netbox.ui.panels.ObjectAttributesPanel.get_context` / `should_render` | `hooks/panels.py` | Object pages: drops attribute rows. Row names come from `panel._attrs` in the order NetBox lists them (respecting `only`/`exclude`); if the counts differ the panel is left alone. A row stands for its own name and, when its accessor is a plain field name, that field too (the device panel's *Parent device* reads `parent_bay`). A panel left without rows is not rendered. |
-| `extras.ui.panels.CustomFieldsPanel.get_context` | `hooks/panels.py` | Drops `cf_<name>` fields and empty ones. |
+| `netbox.models.features.CustomFieldsMixin.get_custom_fields_by_group` | `hooks/panels.py` | Drops `cf_<name>` fields and empty ones. NetBox calls it only to draw custom fields: from `CustomFieldsPanel` and from `inc/panels/custom_fields.html`, which hand-written (mostly plugin) object pages include. Outside a request it returns NetBox's result unchanged. |
+| `django.template.loader_tags.IncludeNode.render` | `hooks/panels.py` | Hand-written object pages include `inc/panels/tags.html` and `inc/panels/comments.html` rather than using `TagsPanel` / `CommentsPanel`. For exactly those two fixed template names it draws nothing when `tags` / `comments` is hidden, or empty and empty fields are hidden. Every other include goes straight to Django. |
 | `netbox.ui.panels.Panel.render` | `hooks/panels.py` | Returns nothing for a panel a rule names as `panel:<key>`. |
 | `CommentsPanel.should_render`, `TagsPanel.should_render` | `hooks/panels.py` | Skips the panel when `comments` / `tags` is hidden, or empty and empty fields are hidden. |
 | `netbox.tables.NetBoxTable.configure` | `hooks/tables.py` | Adds rule columns to the table's `exclude` before NetBox applies the user's columns (as NetBox does for custom link columns), and hides columns empty on the current page after pagination. Skipped for CSV exports (`?export`), which NetBox draws from the same table. |
@@ -98,7 +99,8 @@ string, which NetBox's edit view uses as initial data.
 - Form fields drawn without `render_field`: the comments box and the
   changelog message (fixed places in NetBox's form template), inline field
   rows, tabbed groups.
-- Object pages drawn from hand-written templates.
+- Attribute rows on object pages drawn from hand-written templates. Their
+  Tags, Comments and Custom Fields panels are covered (see the table).
 - The REST API, GraphQL and exports: hiding is a display choice.
 
 ## Tests

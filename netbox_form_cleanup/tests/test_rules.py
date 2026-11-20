@@ -30,6 +30,8 @@ class RuleValidationTests(NetBoxData, TestCase):
         self.assertIn('asset_tag', names)
         self.assertNotIn('id', names)
         self.assertNotIn('interfaces', names)  # reverse relation
+        self.assertNotIn('tagged_items', names)  # generic reverse relation
+        self.assertIn('tags', names)
         self.assertIn('total_weight', names)  # a row on the device page, not a field
         self.assertIn('panel:dcim.virtualdevicecontext', names)  # a whole panel
         with self.assertRaises(ValidationError) as cm:

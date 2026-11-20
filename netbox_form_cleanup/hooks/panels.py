@@ -6,15 +6,24 @@ using NetBox's layouts are built from:
 
 - ObjectAttributesPanel.get_context: drop rows; should_render: skip a panel
   left with no rows.
-- CustomFieldsPanel.get_context: drop custom fields (cf_<name>).
 - CommentsPanel / TagsPanel should_render: skip when hidden or empty.
 - Panel.render: skip a whole panel a rule names as panel:<...>.
 
-Pages drawn from hand-written templates are not touched.
+Pages drawn from hand-written templates (most plugins' own object pages)
+show tags, comments and custom fields by including NetBox's shared panel
+templates instead, so those are covered too:
+
+- IncludeNode.render: skip {% include 'inc/panels/tags.html' %} and
+  'inc/panels/comments.html' when hidden or empty.
+- CustomFieldsMixin.get_custom_fields_by_group: the custom fields both
+  'inc/panels/custom_fields.html' and CustomFieldsPanel list, without
+  hidden (and, by preference, empty) ones.
 """
 import functools
 
-from extras.ui.panels import CustomFieldsPanel, TagsPanel
+from django.template.loader_tags import IncludeNode
+from extras.ui.panels import TagsPanel
+from netbox.models.features import CustomFieldsMixin
 from netbox.ui.panels import CommentsPanel, ObjectAttributesPanel, Panel
 
 from ..fields import CF_PREFIX, is_empty, object_value, panel_key
@@ -22,6 +31,12 @@ from ..rules import DETAIL, get_request, hidden_fields, hide_empty, rules_for
 
 #: Set in a panel's context when every row was left out.
 EMPTIED = 'form_cleanup_emptied'
+
+#: NetBox's shared panel templates for hand-written object pages, and the field each shows.
+INCLUDED_PANELS = {
+    'inc/panels/tags.html': 'tags',
+    'inc/panels/comments.html': 'comments',
+}
 
 
 def _detail_state(obj):
@@ -111,23 +126,26 @@ def _wrap_attributes():
 
 
 def _wrap_custom_fields():
-    get_context = CustomFieldsPanel.get_context
-    if getattr(get_context, '_form_cleanup', False):
+    """
+    Custom fields left out on object pages. NetBox only calls this method to
+    draw them (CustomFieldsPanel and inc/panels/custom_fields.html), never to
+    read or save data. Outside a request no rules apply, so nothing changes.
+    """
+    get_groups = CustomFieldsMixin.get_custom_fields_by_group
+    if getattr(get_groups, '_form_cleanup', False):
         return
 
-    @functools.wraps(get_context)
-    def wrapped(self, context):
-        ctx = get_context(self, context)
-        obj = ctx.get('object')
-        groups = ctx.get('custom_fields')
-        if obj is None or not groups:
-            return ctx
+    @functools.wraps(get_groups)
+    def wrapped(self):
+        groups = get_groups(self)
+        if not groups:
+            return groups
         try:
-            rules, drop_empty = _detail_state(obj)
+            rules, drop_empty = _detail_state(self)
             if not rules and not drop_empty:
-                return ctx
+                return groups
             names = {f'{CF_PREFIX}{cf.name}' for fields in groups.values() for cf in fields}
-            hidden = _hidden(rules, obj, names)
+            hidden = _hidden(rules, self, names)
             cleaned = {}
             for group, fields in groups.items():
                 kept = {
@@ -136,13 +154,20 @@ def _wrap_custom_fields():
                 }
                 if kept:
                     cleaned[group] = kept
-            ctx = {**ctx, 'custom_fields': cleaned}
+            return cleaned
         except Exception:
-            return ctx
-        return ctx
+            return groups
 
     wrapped._form_cleanup = True
-    CustomFieldsPanel.get_context = wrapped
+    CustomFieldsMixin.get_custom_fields_by_group = wrapped
+
+
+def _field_left_out(obj, name):
+    """Whether the object page leaves out field `name` of `obj`: hidden by a rule, or empty while empty fields are."""
+    rules, drop_empty = _detail_state(obj)
+    if name in _hidden(rules, obj, {name}):
+        return True
+    return drop_empty and is_empty(object_value(obj, name))
 
 
 def _wrap_single_field(panel_class, field_of):
@@ -156,11 +181,7 @@ def _wrap_single_field(panel_class, field_of):
         obj = context.get('object')
         if obj is not None and hasattr(obj, '_meta'):
             try:
-                name = field_of(self)
-                rules, drop_empty = _detail_state(obj)
-                if name in _hidden(rules, obj, {name}):
-                    return False
-                if drop_empty and is_empty(object_value(obj, name)):
+                if _field_left_out(obj, field_of(self)):
                     return False
             except Exception:
                 pass
@@ -194,9 +215,39 @@ def _wrap_whole_panels():
     Panel.render = wrapped
 
 
+def _wrap_included_panels():
+    """
+    {% include 'inc/panels/tags.html' %} and the comments one draw nothing
+    when the page's object leaves that field out. Every other include is
+    passed straight to Django.
+    """
+    render = IncludeNode.render
+    if getattr(render, '_form_cleanup', False):
+        return
+
+    @functools.wraps(render)
+    def wrapped(self, context):
+        try:
+            # Only a fixed template name ('inc/panels/tags.html') is looked at.
+            name = getattr(self.template, 'var', None)
+            field = INCLUDED_PANELS.get(name) if isinstance(name, str) else None
+            if field:
+                obj = self.extra_context['object'].resolve(context) if 'object' in self.extra_context \
+                    else context.get('object')
+                if obj is not None and hasattr(obj, '_meta') and _field_left_out(obj, field):
+                    return ''
+        except Exception:  # Never break a page over cosmetics.
+            pass
+        return render(self, context)
+
+    wrapped._form_cleanup = True
+    IncludeNode.render = wrapped
+
+
 def apply():
     _wrap_whole_panels()
     _wrap_attributes()
     _wrap_custom_fields()
     _wrap_single_field(CommentsPanel, lambda panel: panel.field_name)
     _wrap_single_field(TagsPanel, lambda panel: 'tags')
+    _wrap_included_panels()
