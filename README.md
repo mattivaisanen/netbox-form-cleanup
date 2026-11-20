@@ -62,9 +62,11 @@ as they are.
 
 - Change the REST API, GraphQL, exports, the change log or permissions. A
   hidden field is still readable and writable everywhere else.
-- Touch pages NetBox draws from hand-written templates instead of its panel
-  layouts (all core object pages in NetBox 4.7 use the layouts; some
-  plugins may not). Forms are covered whatever template draws them.
+- Hide attribute rows on pages drawn from hand-written templates instead
+  of NetBox's panel layouts (all core object pages in NetBox 4.7 use the
+  layouts; many plugins do not). On those pages only the shared Tags,
+  Comments and Custom Fields panels follow the rules. Forms are covered
+  whatever template draws them.
 - Move a form's comments box or changelog message (NetBox draws them in
   fixed places), or fields inside tabbed groups.
 
