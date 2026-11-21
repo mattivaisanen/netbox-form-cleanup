@@ -121,7 +121,7 @@ class Command(BaseCommand):
             names = ', '.join(str(field) for field in object_fields)
             self.stdout.write(f'custom fields pointing at field rules, to delete: {names}')
         if configs:
-            self.stdout.write(f'{len(configs)} users with Form Cleanup preferences')
+            self.stdout.write(f'Form Cleanup preferences of {len(configs)} user(s)')
 
         if dry_run:
             return
