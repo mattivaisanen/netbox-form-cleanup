@@ -10,6 +10,7 @@ stored value and are not counted.
 """
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 
 from .fields import CF_PREFIX, field_choices
@@ -29,7 +30,7 @@ def _filled(queryset, model, name):
         )
     try:
         field = model._meta.get_field(name)
-    except Exception:
+    except FieldDoesNotExist:
         return None  # A page-only row or a panel.
     if isinstance(field, GenericForeignKey):
         # Assigned object, scope, ...: set when its ID is.

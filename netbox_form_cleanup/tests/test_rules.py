@@ -1,7 +1,10 @@
 """Rule validation, matching and who the rules apply to."""
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 
+from core.models import ObjectChange
 from dcim.models import Device, Site
 from users.models import Group
 
@@ -30,6 +33,8 @@ class RuleValidationTests(NetBoxData, TestCase):
         self.assertIn('asset_tag', names)
         self.assertNotIn('id', names)
         self.assertNotIn('interfaces', names)  # reverse relation
+        self.assertNotIn('tagged_items', names)  # generic reverse relation
+        self.assertIn('tags', names)
         self.assertIn('total_weight', names)  # a row on the device page, not a field
         self.assertIn('panel:dcim.virtualdevicecontext', names)  # a whole panel
         with self.assertRaises(ValidationError) as cm:
@@ -311,3 +316,35 @@ class MigrationTests(NetBoxData, TestCase):
         other.refresh_from_db()
         self.assertEqual(twice.condition_field, '')
         self.assertEqual(other.condition_field, 'device_type')
+
+
+class GroupDeletionTests(NetBoxData, TestCase):
+    """A rule never widens to everyone because its user groups were deleted."""
+    @classmethod
+    def setUpTestData(cls):
+        cls.make_netbox()
+
+    def rule_with(self, *groups):
+        rule = self.rule(['serial'], model=Device)
+        rule.groups.set(groups)
+        return rule
+
+    def test_last_group_deleted_in_request(self):
+        team, other = Group.objects.create(name='Team'), Group.objects.create(name='Other')
+        rule, shared = self.rule_with(team), self.rule_with(team, other)
+        request = self.as_current(self.admin)
+        request.id = uuid.uuid4()
+        team.delete()
+        rule.refresh_from_db()
+        shared.refresh_from_db()
+        self.assertFalse(rule.enabled)
+        self.assertTrue(shared.enabled)  # Still limited to Other.
+        change = ObjectChange.objects.filter(changed_object_id=rule.pk, action='update').order_by('-pk').first()
+        self.assertIn('Team', change.message)
+
+    def test_last_group_deleted_without_request(self):
+        team = Group.objects.create(name='Team')
+        rule = self.rule_with(team)
+        team.delete()
+        rule.refresh_from_db()
+        self.assertFalse(rule.enabled)

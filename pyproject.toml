@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-form-cleanup"
-version = "0.1.0"
+version = "0.2.0"
 description = "Hide unused or empty fields from NetBox forms, object pages and lists."
 requires-python = ">=3.10"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 readme = "README.md"
 authors = [{ name = "Matti" }]
 # No runtime dependencies beyond NetBox (which brings Django). NetBox
@@ -15,11 +16,30 @@ authors = [{ name = "Matti" }]
 # netbox_form_cleanup/__init__.py.
 dependencies = []
 
+[project.urls]
+Repository = "https://github.com/mattivaisanen/netbox-form-cleanup"
+Changelog = "https://github.com/mattivaisanen/netbox-form-cleanup/blob/main/CHANGELOG.md"
+
 [tool.setuptools.packages.find]
 include = ["netbox_form_cleanup*"]
 
 [tool.setuptools.package-data]
-netbox_form_cleanup = [
-    "templates/netbox_form_cleanup/*.html",
-    "templates/netbox_form_cleanup/**/*.html",
+netbox_form_cleanup = ["templates/**/*.html"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["netbox_form_cleanup/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.isort]
+# NetBox's own apps form a section between third-party and this plugin.
+section-order = ["future", "standard-library", "third-party", "netbox", "first-party", "local-folder"]
+known-first-party = ["netbox_form_cleanup"]
+
+[tool.ruff.lint.isort.sections]
+netbox = [
+    "circuits", "core", "dcim", "extras", "ipam", "netbox", "tenancy", "users", "utilities", "virtualization",
+    "vpn", "wireless",
 ]

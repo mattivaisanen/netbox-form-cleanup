@@ -53,6 +53,8 @@ as they are.
 - **Per group.** A rule can be limited to members of some user groups,
   and can leave out members of others (*Except user groups*), for example
   hide a field for everyone except the team that maintains it.
+  When the last user group of a rule is deleted, the rule is disabled
+  rather than left to apply to everyone; its change log says why.
 - **Field Usage.** *Plugins → Field Usage* shows, for one object type, how
   many objects have a value in each field and which rules already hide it.
   Each field has a button that opens a new rule for it, and *Hide Unused
@@ -62,15 +64,17 @@ as they are.
 
 - Change the REST API, GraphQL, exports, the change log or permissions. A
   hidden field is still readable and writable everywhere else.
-- Touch pages NetBox draws from hand-written templates instead of its panel
-  layouts (all core object pages in NetBox 4.7 use the layouts; some
-  plugins may not). Forms are covered whatever template draws them.
+- Hide attribute rows on pages drawn from hand-written templates instead
+  of NetBox's panel layouts (all core object pages in NetBox 4.7 use the
+  layouts; many plugins do not). On those pages only the shared Tags,
+  Comments and Custom Fields panels follow the rules. Forms are covered
+  whatever template draws them.
 - Move a form's comments box or changelog message (NetBox draws them in
   fixed places), or fields inside tabbed groups.
 
 ## Requirements
 
-- NetBox **4.7** or later. Tested with NetBox 4.7.3.
+- NetBox **4.7** (4.7.0 to 4.7.x). Tested with NetBox 4.7.0 and 4.7.3.
 - No other NetBox plugins. Works next to netbox-change-approval (rule
   changes then need approval like any other change).
 
@@ -103,6 +107,25 @@ says so.
 
 Settings and permissions: [docs/configuration.md](docs/configuration.md).
 How it works inside: [DEVELOPER.md](DEVELOPER.md).
+
+## Uninstalling
+
+Field rules live in the plugin's own table, but NetBox keeps rows about
+them too (change log entries, bookmarks, tag assignments...). Remove those
+while the plugin is still installed, then drop its table:
+
+```bash
+cd /opt/netbox/netbox
+python manage.py prepare_form_cleanup_uninstall --dry-run   # only shows
+python manage.py prepare_form_cleanup_uninstall
+python manage.py migrate netbox_form_cleanup zero
+```
+
+The first command also takes the field rule object type off custom fields,
+tags, event rules and permissions (deleting those that were only for field
+rules) and removes the plugin's user preferences. Then take
+`netbox_form_cleanup` out of `PLUGINS`, restart NetBox and its worker, and
+`pip uninstall netbox-form-cleanup`.
 
 ## License
 

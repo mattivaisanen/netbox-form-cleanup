@@ -6,8 +6,13 @@ from netbox.forms import NetBoxModelBulkEditForm, NetBoxModelFilterSetForm, NetB
 from users.models import Group
 from utilities.forms import BOOLEAN_WITH_BLANK_CHOICES
 from utilities.forms.fields import (
-    CommentField, ContentTypeChoiceField, CSVChoiceField, CSVContentTypeField, CSVModelMultipleChoiceField,
-    DynamicModelMultipleChoiceField, TagFilterField,
+    CommentField,
+    ContentTypeChoiceField,
+    CSVChoiceField,
+    CSVContentTypeField,
+    CSVModelMultipleChoiceField,
+    DynamicModelMultipleChoiceField,
+    TagFilterField,
 )
 from utilities.forms.rendering import FieldSet, InlineFields
 from utilities.forms.utils import get_field_value

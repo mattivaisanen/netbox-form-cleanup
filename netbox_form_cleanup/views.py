@@ -5,9 +5,9 @@ from django.urls import reverse
 from django.utils.text import capfirst
 from django.views import View
 
+from extras.ui.panels import CustomFieldsPanel, TagsPanel
 from netbox.ui import layout
 from netbox.ui.panels import CommentsPanel
-from extras.ui.panels import CustomFieldsPanel, TagsPanel
 from netbox.views import generic
 from utilities.views import ContentTypePermissionRequiredMixin, register_model_view
 
