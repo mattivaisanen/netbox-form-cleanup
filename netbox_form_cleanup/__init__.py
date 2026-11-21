@@ -10,18 +10,22 @@ preference also leave out every empty field on object pages and every empty
 column on lists. The REST API and the data are never touched. See
 DEVELOPER.md for the NetBox internals this wraps.
 """
+from django.utils.translation import gettext_lazy as _
+
 from netbox.plugins import PluginConfig
 
 
 class FormCleanupConfig(PluginConfig):
     name = 'netbox_form_cleanup'
-    verbose_name = 'Form Cleanup'
-    description = 'Hide unused or empty fields from NetBox forms, object pages and lists.'
-    version = '0.1.0'
+    verbose_name = _('Form Cleanup')
+    description = _('Hide unused or empty fields from NetBox forms, object pages and lists.')
+    version = '0.2.0'
     author = 'Matti'
     base_url = 'form-cleanup'
     # Only claim what CI tests (.github/workflows/test.yml).
     min_version = '4.7.0'
+    # hooks/ wraps NetBox 4.7 internals (DEVELOPER.md): check them before raising this.
+    max_version = '4.7.99'
 
     default_settings = {
         # Superusers see every field unless they switch on "Apply field
@@ -39,9 +43,10 @@ class FormCleanupConfig(PluginConfig):
 
     def ready(self):
         super().ready()
-        from . import hooks
+        from . import hooks, signals
 
         hooks.apply()
+        signals.connect()
 
 
 config = FormCleanupConfig

@@ -8,6 +8,7 @@ tables).
 from decimal import Decimal, InvalidOperation
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils.text import capfirst
@@ -69,6 +70,7 @@ def panel_key(panel):
     for panels without a fixed title (plugin content, templates).
     """
     from django.utils.text import slugify
+
     from netbox.ui.panels import ObjectsTablePanel
 
     if isinstance(panel, ObjectsTablePanel):
@@ -180,7 +182,7 @@ def object_value(obj, name):
             return data.get(name[len(CF_PREFIX):])
     try:
         field = obj._meta.get_field(name)
-    except Exception:
+    except FieldDoesNotExist:
         field = None
     if field is not None and field.many_to_many and obj.pk is None:
         return None
@@ -195,7 +197,7 @@ def _related_model(model, name):
         return None
     try:
         field = model._meta.get_field(name)
-    except Exception:
+    except FieldDoesNotExist:
         return None
     return field.related_model if field.is_relation else None
 

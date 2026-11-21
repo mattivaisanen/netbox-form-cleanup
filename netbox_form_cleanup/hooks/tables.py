@@ -15,11 +15,14 @@ CSV exports (?export=...) are left alone: NetBox exports "All data" from
 the table's columns, so a removed column would go missing from the file.
 """
 import functools
+import logging
 
 from netbox.tables import BaseTable, NetBoxTable
 
 from ..fields import is_empty
 from ..rules import TABLES, hidden_fields, hide_empty, rules_for
+
+logger = logging.getLogger('netbox_form_cleanup')
 
 #: Never hidden for being empty.
 KEEP = {'pk', 'id', 'actions'}
@@ -87,8 +90,8 @@ def _wrap_configure():
                 hidden -= set(self.exempt_columns or ()) | KEEP
                 if hidden:
                     self.exclude = (*(self.exclude or ()), *sorted(hidden))
-        except Exception:
-            pass
+        except Exception:  # Never break a list over cosmetics.
+            logger.exception('Could not remove hidden columns of %s', type(self).__name__)
         configure(self, request)
         try:
             if hide_empty(request, 'tables'):
@@ -96,8 +99,8 @@ def _wrap_configure():
                 for name in empty:
                     self.columns.hide(name)
                 setattr(self, AUTO_HIDDEN, empty)
-        except Exception:
-            pass
+        except Exception:  # Never break a list over cosmetics.
+            logger.exception('Could not hide empty columns of %s', type(self).__name__)
 
     wrapped._form_cleanup = True
     NetBoxTable.configure = wrapped

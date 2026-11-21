@@ -47,6 +47,16 @@ model label for `ObjectsTablePanel`, else the slugified title).
 - `hide_empty(request, 'detail' | 'tables')`: the user's preference, else
   the setting.
 
+`signals.py` keeps a rule from widening by itself: an empty user group list
+means everyone, so when the last user group of an enabled rule is deleted
+the rule is disabled, with a change log message. With a request NetBox's
+`handle_deleted_object` removes the group from the rule first (an m2m
+`post_remove`, caught by `rule_groups_changed()`, which checks
+`core.signals._signals_received` to tell a deletion from an edit); without
+one (scripts, shell) `group_deleting()` / `group_deleted()` note and check
+the rules around the delete. Except user groups need nothing. Receivers are
+connected from `ready()` with `dispatch_uid`s.
+
 ## Wrapped NetBox internals
 
 Everything is wired in `hooks/` from `ready()`. Each wrapper calls
@@ -93,6 +103,34 @@ objects; custom fields by their `custom_field_data` key). Page-only rows
 and panels have no stored value and show no count. The *Rule* buttons link
 to the add form with `object_type`, `fields` and `name` in the query
 string, which NetBox's edit view uses as initial data.
+
+## Uninstalling
+
+`management/commands/prepare_form_cleanup_uninstall.py` deletes NetBox's own
+rows about field rules (change log, journal, bookmarks, notifications, tag
+assignments, search cache, jobs...), takes the field rule object type off
+custom fields, tags, event rules, permissions and the like, and removes
+`plugins.netbox_form_cleanup` from every user's preferences. Same shape as
+the uninstall commands of Matti's other plugins.
+
+## Design decisions
+
+Agreed with Matti on 2026-10-25, kept up to date since:
+
+- Display only: hidden fields move into *More Fields* (still submitted),
+  never removed; the REST API, GraphQL, exports and data are untouched.
+- Rules are UI-managed NetBoxModel objects, like the other plugins' rules.
+  Conditions: Always, While empty, value is / is not one of, pattern, same
+  as another field (added 2026-10-25).
+- A required field without a value is never hidden; the section opens on
+  errors.
+- Superusers see everything unless they opt in (`apply_to_me`).
+- Hiding empty fields is a global setting plus a per-user preference.
+- Field Usage page added 2026-11-01.
+- Mapping existing devices to the configuration they were imported from
+  belongs to netbox-fortigate-importer, not this plugin.
+- No runtime dependencies and no required plugins; `min_version` and
+  `max_version` follow the CI matrix and the wrapped internals above.
 
 ## Not covered (and why)
 

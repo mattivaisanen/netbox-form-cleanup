@@ -2,10 +2,17 @@
 
 ## Unreleased
 
+## 0.2.0 (2026-11-21)
+
+Supports NetBox 4.7 only (`max_version` 4.7.99), as the plugin wraps
+NetBox 4.7 internals.
+
 New:
 
 - *Except user groups* on field rules: the rule never applies to members
   of these groups, even when they are in the rule's own user groups.
+- `prepare_form_cleanup_uninstall` command and an *Uninstalling* section in
+  the README.
 - *Plugins → Field Usage*: pick an object type to see how many objects
   have a value in each field and which rules hide it, then add a rule for
   one field or for every unused field in one click.
@@ -25,6 +32,11 @@ Fixed:
   cannot be limited to the field rule type any more.
 - *Clone* on a field rule keeps its fields, condition, user groups and
   except user groups.
+- Deleting the last user group of a rule disables the rule, with a change
+  log message, instead of leaving it to apply to everyone.
+- Unexpected errors while hiding fields are logged (`netbox_form_cleanup`
+  logger) instead of passing silently; the page still shows NetBox's own
+  result.
 
 ## 0.1.0 (2026-10-26)
 

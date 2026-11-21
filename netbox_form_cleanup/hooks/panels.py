@@ -20,14 +20,18 @@ templates instead, so those are covered too:
   hidden (and, by preference, empty) ones.
 """
 import functools
+import logging
 
 from django.template.loader_tags import IncludeNode
+
 from extras.ui.panels import TagsPanel
 from netbox.models.features import CustomFieldsMixin
 from netbox.ui.panels import CommentsPanel, ObjectAttributesPanel, Panel
 
 from ..fields import CF_PREFIX, is_empty, object_value, panel_key
 from ..rules import DETAIL, get_request, hidden_fields, hide_empty, rules_for
+
+logger = logging.getLogger('netbox_form_cleanup')
 
 #: Set in a panel's context when every row was left out.
 EMPTIED = 'form_cleanup_emptied'
@@ -111,6 +115,7 @@ def _wrap_attributes():
             if len(kept) != len(rows):
                 ctx = {**ctx, 'attrs': kept, EMPTIED: not kept}
         except Exception:  # Never break a page over cosmetics.
+            logger.exception('Could not leave out attributes of %s', type(self).__name__)
             return ctx
         return ctx
 
@@ -156,6 +161,7 @@ def _wrap_custom_fields():
                     cleaned[group] = kept
             return cleaned
         except Exception:
+            logger.exception('Could not leave out custom fields of %s', type(self).__name__)
             return groups
 
     wrapped._form_cleanup = True
@@ -183,8 +189,8 @@ def _wrap_single_field(panel_class, field_of):
             try:
                 if _field_left_out(obj, field_of(self)):
                     return False
-            except Exception:
-                pass
+            except Exception:  # Never break a page over cosmetics.
+                logger.exception('Could not check %s', panel_class.__name__)
         return should_render(self, context)
 
     wrapped._form_cleanup = True
@@ -207,8 +213,8 @@ def _wrap_whole_panels():
                     rules, _drop_empty = _detail_state(obj)
                     if key in _hidden(rules, obj, {key}):
                         return ''
-            except Exception:
-                pass
+            except Exception:  # Never break a page over cosmetics.
+                logger.exception('Could not check panel %s', type(self).__name__)
         return render(self, context)
 
     wrapped._form_cleanup = True
@@ -237,7 +243,7 @@ def _wrap_included_panels():
                 if obj is not None and hasattr(obj, '_meta') and _field_left_out(obj, field):
                     return ''
         except Exception:  # Never break a page over cosmetics.
-            pass
+            logger.exception('Could not check included template %r', getattr(self.template, 'var', None))
         return render(self, context)
 
     wrapped._form_cleanup = True
