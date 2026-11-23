@@ -117,8 +117,9 @@ def rules_for(model, where, request=None):
 
 def rules_for_type(model):
     """Every enabled rule for `model` or every type, whoever it applies to (for the Field Usage page)."""
-    from core.models import ObjectType
     from django.db.models import Q
+
+    from core.models import ObjectType
 
     object_type = ObjectType.objects.get_for_model(model)
     return list(
