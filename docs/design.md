@@ -46,8 +46,9 @@ Rules*.
 - **Detail pages** (NetBox 4.7 panel layouts: every core model and plugins
   that use `ObjectAttributesPanel`): hidden attributes are dropped from
   attribute panels and the custom fields panel; a panel left with nothing to
-  show is not rendered. Pages still using hand-written templates are not
-  touched (documented limitation).
+  show is not rendered. Pages still using hand-written templates keep their
+  attribute rows (documented limitation); their shared Tags, Comments and
+  Custom Fields panels follow the rules.
 - **Tables**: hidden columns are removed from the table and from *Configure
   table*.
 

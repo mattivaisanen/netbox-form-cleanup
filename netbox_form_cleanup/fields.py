@@ -7,6 +7,7 @@ tables).
 """
 from decimal import Decimal, InvalidOperation
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
 from django.utils.text import capfirst
@@ -27,8 +28,10 @@ def field_choices(model):
 
     choices = []
     for field in model._meta.get_fields():
-        if isinstance(field, ForeignObjectRel):
-            continue  # Reverse relations: other objects pointing here.
+        if isinstance(field, (ForeignObjectRel, GenericRelation)):
+            # Reverse relations: other objects pointing here (a generic one,
+            # like tagged_items, is no field of the form or page either).
+            continue
         if field.name in SKIP_FIELDS or field.name.startswith('_'):
             continue
         if isinstance(field, models.Field) and not field.editable and not field.is_relation:

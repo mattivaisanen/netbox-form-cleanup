@@ -12,6 +12,12 @@ New:
 
 Fixed:
 
+- Empty (or hidden) tags, comments and custom fields are now left out on
+  object pages drawn from their own templates, as most plugins' pages
+  are. Before, only NetBox's core object pages left them out.
+- The rule form no longer offers *Tagged items* and other generic reverse
+  relations. They are no fields of the form or the page, so a rule for
+  them hid nothing; use *Tags*.
 - CSV exports of object lists keep columns that a rule removes from the
   list, as exports are never filtered.
 - Field rules no longer apply to the field rule pages themselves, so a
